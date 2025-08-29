@@ -6,6 +6,7 @@ import apiResponse from 'src/common/helpers/apiResponse';
 import { HttpStatusCode } from 'src/common/constant/http-status.constant';
 import { apiError } from 'src/common/helpers/apiError';
 import { apiResponseType } from 'src/common/constant/response-type';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -13,8 +14,12 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto): Promise<apiResponseType> {
     try {
+      const hash = await bcrypt.hash(createUserDto.password, 10);
       const user = await this.prisma.user.create({
-        data: createUserDto,
+        data: {
+          ...createUserDto,
+          password: hash, // use hashed password
+        },
       });
       return apiResponse(HttpStatusCode.CREATED, 'User Created', user);
     } catch (error: unknown) {
