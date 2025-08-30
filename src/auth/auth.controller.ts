@@ -34,6 +34,12 @@ export class AuthController {
     return this.authService.login(user);
   }
 
+  @Post('refresh-token')
+  async refreshTokens(@Request() req) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+    return this.authService.refreshTokens(req.headers.refresh_token);
+  }
+
   // =======================
   // Protected: get profile
   // =======================
