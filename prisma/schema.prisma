@@ -26,3 +26,17 @@ model User {
 
   @@index([is_admin])
 }
+
+model Customer {
+  id             String   @id @default(uuid())
+  name           String
+  phone          String?  @unique
+  telegram       String?  
+  address        String?
+  lastOrderDate  DateTime?
+  totalOrders    Int      @default(0)
+  totalSpent     Float    @default(0)
+  mapUrl         String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
