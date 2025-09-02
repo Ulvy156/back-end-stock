@@ -44,6 +44,27 @@ export class UserService {
     }
   }
 
+  async findOneWithWarehouse(id: string): Promise<apiResponseType> {
+    try {
+      const user = await this.prisma.user.findFirst({
+        where: { id },
+        include: {
+          warehouses: {
+            include: { warehouse: true },
+          },
+        },
+      });
+
+      if (!user) {
+        return apiResponse(404, 'User not found', null);
+      }
+
+      return apiResponse(HttpStatusCode.OK, 'Success', user);
+    } catch (error) {
+      return apiError(error);
+    }
+  }
+
   async update(id: string, updateUserDto: UpdateUserDto) {
     try {
       const currentUser = await this.prisma.user.findFirst({ where: { id } });

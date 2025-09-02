@@ -22,15 +22,19 @@ export class UserController {
     return await this.userService.create(createUserDto);
   }
 
-  @Public()
   @Get()
-  findAll() {
-    return this.userService.findAll();
+  async findAll() {
+    return await this.userService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    return await this.userService.findOne(id);
+  }
+
+  @Get('/warehouse/:id')
+  async findOneWithWarehouse(@Param('id') id: string) {
+    return await this.userService.findOneWithWarehouse(id);
   }
 
   @Patch(':id')
