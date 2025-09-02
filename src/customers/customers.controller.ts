@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { CustomersService } from './customers.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
@@ -21,8 +22,8 @@ export class CustomersController {
   }
 
   @Get()
-  async findAll() {
-    return await this.customersService.findAll();
+  async findAll(@Query('page') page = 1, @Query('limit') limit = 20) {
+    return await this.customersService.findAll(+page, +limit);
   }
 
   @Get(':id')

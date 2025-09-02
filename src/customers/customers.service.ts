@@ -22,9 +22,23 @@ export class CustomersService {
     }
   }
 
-  async findAll() {
-    const customers = await this.prisma.customer.findMany();
-    return apiResponse(HttpStatusCode.OK, 'Success', customers);
+  async findAll(page: number, limit: number = 20) {
+    const skip = (page - 1) * limit;
+    const [customers, total] = await this.prisma.$transaction([
+      this.prisma.customer.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' }, // optional
+      }),
+      this.prisma.customer.count(),
+    ]);
+    const lastPage = Math.ceil(total / limit);
+    const meta = {
+      customers,
+      total,
+      lastPage,
+    };
+    return apiResponse(HttpStatusCode.OK, 'Success', meta);
   }
 
   async findOne(id: string) {
@@ -75,7 +89,7 @@ export class CustomersService {
         return apiResponse(404, 'Customer not found', null);
       }
 
-      const deletedCustomer = this.prisma.user.delete({
+      const deletedCustomer = await this.prisma.customer.delete({
         where: { id },
       });
       return apiResponse(
