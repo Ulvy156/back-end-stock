@@ -7,7 +7,6 @@ import { HttpStatusCode } from 'src/common/constant/http-status.constant';
 import { apiError } from 'src/common/helpers/apiError';
 import { apiResponseType } from 'src/common/constant/response-type';
 import * as bcrypt from 'bcrypt';
-
 @Injectable()
 export class UserService {
   constructor(private readonly prisma: PrismaService) {}

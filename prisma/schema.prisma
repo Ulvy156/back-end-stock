@@ -57,6 +57,7 @@ model Warehouse {
   id            Int               @id @default(autoincrement())
   name          String            @unique
   location      String?           // e.g., "Hanoi", "Ho Chi Minh City"
+  mapUrl        String?           // e.g., google map url
   purchases     Purchase[]        // One-to-many
   sales         Sale[]            // One-to-many
   product_stocks ProductWarehouse[] // One-to-many

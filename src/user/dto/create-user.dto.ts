@@ -1,10 +1,10 @@
 import {
-  IsBoolean,
   IsEmail,
   IsOptional,
   IsString,
   IsStrongPassword,
 } from 'class-validator';
+import { RoleEnum } from 'generated/prisma';
 
 export class CreateUserDto {
   @IsString()
@@ -16,7 +16,6 @@ export class CreateUserDto {
   @IsStrongPassword()
   password: string;
 
-  @IsBoolean()
   @IsOptional()
-  is_admin: boolean;
+  role: RoleEnum;
 }

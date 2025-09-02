@@ -1,4 +1,4 @@
-import { IsString } from 'class-validator';
+import { IsOptional, IsString, IsUrl } from 'class-validator';
 
 export class CreateCustomerDto {
   @IsString()
@@ -12,4 +12,8 @@ export class CreateCustomerDto {
 
   @IsString()
   address: string;
+
+  @IsUrl()
+  @IsOptional()
+  mapUrl: string;
 }
