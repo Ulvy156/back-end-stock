@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Request } from '@nestjs/common';
+import { Controller, Post, Body, Get, Request, Headers } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Public } from './public.decorator';
 import type { User } from 'generated/prisma';
@@ -35,9 +35,8 @@ export class AuthController {
   }
 
   @Post('refresh-token')
-  async refreshTokens(@Request() req) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-    return this.authService.refreshTokens(req.headers.refresh_token);
+  async refreshTokens(@Headers('refresh_token') refreshToken: string) {
+    return this.authService.refreshTokens(refreshToken);
   }
 
   // =======================
