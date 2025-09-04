@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import { join } from 'path';
 import * as crypto from 'crypto';
 import { FilePath } from './fileupload.type';
+import { apiError } from 'src/common/helpers/apiError';
 
 @Injectable()
 export class FileuploadService {
@@ -33,8 +34,12 @@ export class FileuploadService {
   }
 
   // Optional: delete a file
-  async deleteFile(filename: string) {
-    const filePath = join(process.cwd(), this.folder, filename);
-    await fs.unlink(filePath).catch(() => null); // ignore if not found
+  async deleteFile(filename: string, subfolder: FilePath) {
+    const filePath = join(process.cwd(), this.folder, subfolder, filename);
+    try {
+      await fs.unlink(filePath);
+    } catch (err) {
+      return apiError(err);
+    }
   }
 }
