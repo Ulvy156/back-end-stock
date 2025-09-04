@@ -2,7 +2,7 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import * as crypto from 'crypto';
-import { FilePath } from './fileupload.type';
+import { FilePath } from '../enum/fileupload.enum';
 import { apiError } from 'src/common/helpers/apiError';
 
 @Injectable()

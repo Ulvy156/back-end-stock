@@ -9,7 +9,7 @@ import { apiResponseType } from 'src/common/constant/response-type';
 import * as bcrypt from 'bcrypt';
 import { RoleEnum } from 'generated/prisma';
 import { FileuploadService } from 'src/fileupload/fileupload.service';
-import { FilePath } from 'src/fileupload/fileupload.type';
+import { FilePath } from 'src/enum/fileupload.enum';
 @Injectable()
 export class UserService {
   constructor(

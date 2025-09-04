@@ -7,11 +7,11 @@ import {
 } from '@nestjs/common';
 import { FileuploadService } from './fileupload.service';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { FilePath } from './fileupload.type';
+import { FilePath } from '../enum/fileupload.enum';
 
 @Controller('fileupload')
 export class FileuploadController {
-  constructor(private readonly uploadService: FileuploadService) {}
+  constructor(private readonly uploadService: FileuploadService) { }
 
   @Post()
   @UseInterceptors(FileInterceptor('file'))
