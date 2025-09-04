@@ -8,9 +8,14 @@ import { apiError } from 'src/common/helpers/apiError';
 import { apiResponseType } from 'src/common/constant/response-type';
 import * as bcrypt from 'bcrypt';
 import { RoleEnum } from 'generated/prisma';
+import { FileuploadService } from 'src/fileupload/fileupload.service';
+import { FilePath } from 'src/fileupload/fileupload.type';
 @Injectable()
 export class UserService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly fileUpload: FileuploadService,
+  ) {}
 
   async create(createUserDto: CreateUserDto): Promise<apiResponseType> {
     try {
@@ -32,6 +37,13 @@ export class UserService {
           password: hash, // use hashed password
         },
       });
+      // if photo exist than upload
+      if (createUserDto.file) {
+        await this.fileUpload.uploadFile(
+          createUserDto.file,
+          FilePath.CUSTOMERS,
+        );
+      }
       return apiResponse(HttpStatusCode.CREATED, 'User Created', user);
     } catch (error: unknown) {
       return apiError(error);

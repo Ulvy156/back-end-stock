@@ -27,5 +27,5 @@ export class CreateUserDto {
   warehouse_id?: number;
 
   @IsOptional()
-  img_url?: string;
+  file?: Express.Multer.File;
 }
