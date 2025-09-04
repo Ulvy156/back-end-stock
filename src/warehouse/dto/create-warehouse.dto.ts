@@ -19,4 +19,7 @@ export class CreateWarehouseDto {
   @IsString()
   @IsNotEmpty()
   type: WarehouseType;
+
+  @IsOptional()
+  img_url?: string;
 }

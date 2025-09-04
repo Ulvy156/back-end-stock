@@ -25,4 +25,7 @@ export class CreateUserDto {
   @IsNumber()
   @IsOptional()
   warehouse_id?: number;
+
+  @IsOptional()
+  img_url?: string;
 }

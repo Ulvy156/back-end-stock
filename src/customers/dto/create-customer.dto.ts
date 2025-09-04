@@ -16,4 +16,7 @@ export class CreateCustomerDto {
   @IsUrl()
   @IsOptional()
   mapUrl: string;
+
+  @IsOptional()
+  img_url?: string;
 }

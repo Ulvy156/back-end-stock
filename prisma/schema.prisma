@@ -36,6 +36,7 @@ model User {
   name          String
   email         String          @unique
   password      String
+  img_url       String?
   role          RoleEnum        @default(SELLER)
   purchases     Purchase[]      // One-to-many
   sales         Sale[]          // One-to-many
@@ -53,6 +54,7 @@ model Customer {
   phone         String?   @unique
   telegram      String?
   address       String?
+  img_url       String?
   lastOrderDate DateTime?
   totalOrders   Int       @default(0)
   totalSpent    Float     @default(0)
@@ -70,6 +72,7 @@ model Warehouse {
   location      String           // e.g., "Hanoi", "Ho Chi Minh City"
   type          WarehouseType     @default(BRANCH)
   mapUrl        String?           // e.g., google map url
+  img_url       String?
   purchases     Purchase[]        // One-to-many
   sales         Sale[]            // One-to-many
   product_stocks ProductWarehouse[] // One-to-many
@@ -88,7 +91,7 @@ model ProductWarehouse {
   warehouse     Warehouse @relation(fields: [warehouse_id], references: [id], onDelete: Cascade)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  @@id([product_id, warehouse_id])
+  @@id([product_id, warehouse_id]) // cannot have the same product in the same warehouse twice
   @@index([product_id, warehouse_id]) // For fast stock lookups
 }
 
@@ -146,7 +149,7 @@ model PurchaseItem {
   subtotal      Decimal   @db.Decimal(10, 2)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  @@map("PurchaseItems")
+  @@map("PurchaseItems") // actual table name in db
 }
 
 // Sales ( sale to customer )
