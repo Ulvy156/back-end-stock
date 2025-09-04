@@ -29,6 +29,13 @@ export class UserService {
           HttpStatusCode.BAD_REQUEST,
         );
       }
+      // if photo exist than upload
+      if (createUserDto.file) {
+        createUserDto.img_url = await this.fileUpload.uploadFile(
+          createUserDto.file,
+          FilePath.CUSTOMERS,
+        );
+      }
       const hash = await bcrypt.hash(createUserDto.password, 10);
       const user = await this.prisma.user.create({
         data: {
@@ -37,13 +44,7 @@ export class UserService {
           password: hash, // use hashed password
         },
       });
-      // if photo exist than upload
-      if (createUserDto.file) {
-        await this.fileUpload.uploadFile(
-          createUserDto.file,
-          FilePath.CUSTOMERS,
-        );
-      }
+
       return apiResponse(HttpStatusCode.CREATED, 'User Created', user);
     } catch (error: unknown) {
       return apiError(error);

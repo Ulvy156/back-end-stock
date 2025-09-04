@@ -28,4 +28,7 @@ export class CreateUserDto {
 
   @IsOptional()
   file?: Express.Multer.File;
+
+  @IsOptional()
+  img_url?: string;
 }
