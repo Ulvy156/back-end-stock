@@ -1,5 +1,7 @@
 import {
   IsEmail,
+  IsEnum,
+  IsNumber,
   IsOptional,
   IsString,
   IsStrongPassword,
@@ -17,5 +19,10 @@ export class CreateUserDto {
   password: string;
 
   @IsOptional()
-  role: RoleEnum;
+  @IsEnum(RoleEnum)
+  role?: RoleEnum;
+
+  @IsNumber()
+  @IsOptional()
+  warehouse_id?: number;
 }

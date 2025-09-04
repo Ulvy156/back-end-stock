@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -7,16 +7,28 @@ import { HttpStatusCode } from 'src/common/constant/http-status.constant';
 import { apiError } from 'src/common/helpers/apiError';
 import { apiResponseType } from 'src/common/constant/response-type';
 import * as bcrypt from 'bcrypt';
+import { RoleEnum } from 'generated/prisma';
 @Injectable()
 export class UserService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto): Promise<apiResponseType> {
     try {
+      // optional for warehouse id for admin only
+      if (
+        createUserDto.role !== RoleEnum.ADMIN &&
+        !createUserDto.warehouse_id
+      ) {
+        throw new HttpException(
+          `warehouse id is required for ${createUserDto.role} role`,
+          HttpStatusCode.BAD_REQUEST,
+        );
+      }
       const hash = await bcrypt.hash(createUserDto.password, 10);
       const user = await this.prisma.user.create({
         data: {
           ...createUserDto,
+          role: createUserDto.role ?? RoleEnum.SELLER,
           password: hash, // use hashed password
         },
       });
@@ -35,7 +47,7 @@ export class UserService {
       const user = await this.prisma.user.findFirst({ where: { id } });
 
       if (!user) {
-        return apiResponse(404, 'User not found', null);
+        throw new HttpException('User not found', HttpStatusCode.NOT_FOUND);
       }
 
       return apiResponse(HttpStatusCode.OK, 'Success', user);
@@ -49,14 +61,12 @@ export class UserService {
       const user = await this.prisma.user.findFirst({
         where: { id },
         include: {
-          warehouses: {
-            include: { warehouse: true },
-          },
+          warehouse: true,
         },
       });
 
       if (!user) {
-        return apiResponse(404, 'User not found', null);
+        throw new HttpException('User not found', HttpStatusCode.NOT_FOUND);
       }
 
       return apiResponse(HttpStatusCode.OK, 'Success', user);
@@ -70,7 +80,7 @@ export class UserService {
       const currentUser = await this.prisma.user.findFirst({ where: { id } });
 
       if (!currentUser) {
-        return apiResponse(404, 'User not found', null);
+        throw new HttpException('User not found', HttpStatusCode.NOT_FOUND);
       }
 
       const updatedUser = await this.prisma.user.update({
@@ -92,7 +102,7 @@ export class UserService {
       const currentUser = await this.prisma.user.findFirst({ where: { id } });
 
       if (!currentUser) {
-        return apiResponse(404, 'User not found', null);
+        throw new HttpException('User not found', HttpStatusCode.NOT_FOUND);
       }
 
       const deletedUser = this.prisma.user.delete({

@@ -10,18 +10,14 @@ import { RoleEnum } from 'generated/prisma';
 
 @Injectable()
 export class WarehouseService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(
     createWarehouseDto: CreateWarehouseDto,
   ): Promise<apiResponseType> {
     try {
       const warehouse = await this.prisma.warehouse.create({
-        data: {
-          name: createWarehouseDto.name,
-          location: createWarehouseDto.location ?? null,
-          mapUrl: createWarehouseDto.mapUrl ?? null,
-        },
+        data: createWarehouseDto,
       });
       return apiResponse(
         HttpStatusCode.CREATED,
@@ -60,11 +56,7 @@ export class WarehouseService {
       if (!warehouse) {
         return apiResponse(HttpStatusCode.NOT_FOUND, 'Warehouse not found');
       }
-      return apiResponse(
-        HttpStatusCode.CREATED,
-        'Warehouse',
-        warehouse,
-      );
+      return apiResponse(HttpStatusCode.CREATED, 'Warehouse', warehouse);
     } catch (error) {
       return apiError(error);
     }
@@ -75,19 +67,13 @@ export class WarehouseService {
       const warehouse = await this.prisma.warehouse.findFirst({
         where: { id },
         include: {
-          users: {
-            include: { user: true }
-          },
-        }
+          users: true,
+        },
       });
       if (!warehouse) {
         return apiResponse(HttpStatusCode.NOT_FOUND, 'Warehouse not found');
       }
-      return apiResponse(
-        HttpStatusCode.CREATED,
-        'Warehouse',
-        warehouse,
-      );
+      return apiResponse(HttpStatusCode.CREATED, 'Warehouse', warehouse);
     } catch (error) {
       return apiError(error);
     }
@@ -95,7 +81,9 @@ export class WarehouseService {
 
   async update(id: number, updateWarehouseDto: UpdateWarehouseDto) {
     try {
-      const currentWarehouse = await this.prisma.warehouse.findFirst({ where: { id } });
+      const currentWarehouse = await this.prisma.warehouse.findFirst({
+        where: { id },
+      });
 
       if (!currentWarehouse) {
         return apiResponse(404, 'Warehouse not found', null);
@@ -117,7 +105,9 @@ export class WarehouseService {
 
   async remove(id: number) {
     try {
-      const currentWarehouse = await this.prisma.warehouse.findFirst({ where: { id } });
+      const currentWarehouse = await this.prisma.warehouse.findFirst({
+        where: { id },
+      });
 
       if (!currentWarehouse) {
         return apiResponse(404, 'Warehouse not found', null);
@@ -136,14 +126,14 @@ export class WarehouseService {
     }
   }
 
-  async assignWarehouseManager(user_id: string, warehouse_id: number): Promise<apiResponseType> {
+  async assignWarehouseManager(
+    user_id: string,
+    warehouse_id: number,
+  ): Promise<apiResponseType> {
     try {
       const user = await this.prisma.user.findFirst({ where: { id: user_id } });
       if (!user) {
-        return apiResponse(
-          HttpStatusCode.NOT_FOUND,
-          'User not found',
-        );
+        return apiResponse(HttpStatusCode.NOT_FOUND, 'User not found');
       }
       // if user is not warehouse manager
       if (user.role !== RoleEnum.WAREHOUSE_MANAGER) {
@@ -155,13 +145,10 @@ export class WarehouseService {
 
       // check if warehouse exist
       const warehouse = await this.prisma.warehouse.findFirst({
-        where: { id: warehouse_id }
+        where: { id: warehouse_id },
       });
       if (!warehouse) {
-        return apiResponse(
-          HttpStatusCode.NOT_FOUND,
-          'Warehouse not found',
-        );
+        return apiResponse(HttpStatusCode.NOT_FOUND, 'Warehouse not found');
       }
 
       // check if already has manager
@@ -169,29 +156,28 @@ export class WarehouseService {
         where: { id: warehouse_id },
         include: {
           users: {
-            include: { user: true },
             where: {
-              user: {
-                role: RoleEnum.WAREHOUSE_MANAGER
-              }
-            }
-          }
-        }
+              role: RoleEnum.WAREHOUSE_MANAGER,
+            },
+          },
+        },
       });
       if (hasManager && hasManager.users.length > 0) {
         return apiResponse(
           HttpStatusCode.NOT_FOUND,
           'Warehouse already has manager',
-          hasManager
+          hasManager,
         );
       }
 
       //create warehouse
-      const userWarehouse = await this.prisma.userWarehouse.create({
+      const userWarehouse = await this.prisma.user.update({
         data: {
-          user_id,
-          warehouse_id
-        }
+          warehouse_id,
+        },
+        where: {
+          id: user_id,
+        },
       });
       return apiResponse(
         HttpStatusCode.CREATED,
@@ -203,14 +189,14 @@ export class WarehouseService {
     }
   }
 
-  async assignWarehouseStaff(user_id: string, warehouse_id: number): Promise<apiResponseType> {
+  async assignWarehouseStaff(
+    user_id: string,
+    warehouse_id: number,
+  ): Promise<apiResponseType> {
     try {
       const user = await this.prisma.user.findFirst({ where: { id: user_id } });
       if (!user) {
-        return apiResponse(
-          HttpStatusCode.NOT_FOUND,
-          'User not found',
-        );
+        return apiResponse(HttpStatusCode.NOT_FOUND, 'User not found');
       }
       // if user is not warehouse manager
       if (user.role === RoleEnum.WAREHOUSE_MANAGER) {
@@ -222,22 +208,20 @@ export class WarehouseService {
 
       // check if warehouse exist
       const warehouse = await this.prisma.warehouse.findFirst({
-        where: { id: warehouse_id }
+        where: { id: warehouse_id },
       });
       if (!warehouse) {
-        return apiResponse(
-          HttpStatusCode.NOT_FOUND,
-          'Warehouse not found',
-        );
+        return apiResponse(HttpStatusCode.NOT_FOUND, 'Warehouse not found');
       }
 
-
       //create warehouse
-      const userWarehouse = await this.prisma.userWarehouse.create({
+      const userWarehouse = await this.prisma.user.update({
         data: {
-          user_id,
-          warehouse_id
-        }
+          warehouse_id,
+        },
+        where: {
+          id: user_id,
+        },
       });
       return apiResponse(
         HttpStatusCode.CREATED,

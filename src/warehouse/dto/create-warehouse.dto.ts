@@ -1,4 +1,5 @@
-import { IsOptional, IsString, IsUrl } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUrl } from 'class-validator';
+import { WarehouseType } from 'generated/prisma';
 
 export class CreateWarehouseDto {
   @IsString()
@@ -10,4 +11,12 @@ export class CreateWarehouseDto {
   @IsUrl()
   @IsOptional()
   mapUrl?: string | null;
+
+  @IsString()
+  @IsNotEmpty()
+  size: string;
+
+  @IsString()
+  @IsNotEmpty()
+  type: WarehouseType;
 }
