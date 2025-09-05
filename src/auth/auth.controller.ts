@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Get, Request } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Request,
+  Headers,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Public } from './public.decorator';
 import type { User } from 'generated/prisma';
@@ -6,19 +14,6 @@ import type { User } from 'generated/prisma';
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
-
-  // =======================
-  // Public: register user
-  // =======================
-  @Public()
-  @Post('register')
-  async register(
-    @Body('name') name: string,
-    @Body('email') email: string,
-    @Body('password') password: string,
-  ) {
-    return this.authService.register(name, email, password);
-  }
 
   // =======================
   // Public: login user
@@ -30,14 +25,13 @@ export class AuthController {
     @Body('password') password: string,
   ) {
     const user = await this.authService.validateUser(email, password);
-    if (!user) throw new Error('Invalid credentials');
+    if (!user) throw new UnauthorizedException('Unauthorized');
     return this.authService.login(user);
   }
 
   @Post('refresh-token')
-  async refreshTokens(@Request() req) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-    return this.authService.refreshTokens(req.headers.refresh_token);
+  async refreshTokens(@Headers('refresh_token') refreshToken: string) {
+    return this.authService.refreshTokens(refreshToken);
   }
 
   // =======================

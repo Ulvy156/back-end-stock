@@ -1,7 +1,7 @@
 // npx prisma migrate reset
-
-
 //npx prisma migrate dev --name init
+//npx prisma db push
+
 
 generator client {
   provider = "prisma-client-js"
@@ -20,17 +20,28 @@ enum RoleEnum {
   SELLER
   AUDITOR
 }
-
+enum WarehouseType {
+  MAIN
+  BRANCH
+  TEMPORARY
+}
+enum CustomerType {
+  RETAILS
+  WHOLESALE
+  VIP
+}
 // Users
 model User {
-  id            String             @id @default(uuid())
+  id            String          @id @default(uuid())
   name          String
   email         String          @unique
   password      String
+  img_url       String?
   role          RoleEnum        @default(SELLER)
   purchases     Purchase[]      // One-to-many
   sales         Sale[]          // One-to-many
-  warehouses    UserWarehouse[] // Many-to-many with Warehouses
+  warehouse_id  Int?             
+  warehouse     Warehouse?       @relation(fields: [warehouse_id], references: [id])
   audit_logs    AuditLog[]      // One-to-many
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
@@ -38,11 +49,12 @@ model User {
 
 // Customers
 model Customer {
-  id            String       @id @default(uuid())
+  id            String    @id @default(uuid())
   name          String
   phone         String?   @unique
   telegram      String?
   address       String?
+  img_url       String?
   lastOrderDate DateTime?
   totalOrders   Int       @default(0)
   totalSpent    Float     @default(0)
@@ -56,26 +68,19 @@ model Customer {
 model Warehouse {
   id            Int               @id @default(autoincrement())
   name          String            @unique
-  location      String?           // e.g., "Hanoi", "Ho Chi Minh City"
+  size          String            
+  location      String           // e.g., "Hanoi", "Ho Chi Minh City"
+  type          WarehouseType     @default(BRANCH)
   mapUrl        String?           // e.g., google map url
+  img_url       String?
   purchases     Purchase[]        // One-to-many
   sales         Sale[]            // One-to-many
   product_stocks ProductWarehouse[] // One-to-many
-  users         UserWarehouse[]   // Many-to-many with Users
+  users         User[]            // Many-to-one with Users
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 }
 
-// UserWarehouse (junction table for sellers assigned to warehouses)
-model UserWarehouse {
-  user_id      String
-  warehouse_id Int
-  user         User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  warehouse    Warehouse @relation(fields: [warehouse_id], references: [id], onDelete: Cascade)
-  createdAt    DateTime  @default(now())
-  @@id([user_id, warehouse_id])
-  @@index([user_id, warehouse_id]) // For fast lookup
-}
 
 // ProductWarehouse (stock per product per warehouse)
 model ProductWarehouse {
@@ -86,13 +91,13 @@ model ProductWarehouse {
   warehouse     Warehouse @relation(fields: [warehouse_id], references: [id], onDelete: Cascade)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  @@id([product_id, warehouse_id])
+  @@id([product_id, warehouse_id]) // cannot have the same product in the same warehouse twice
   @@index([product_id, warehouse_id]) // For fast stock lookups
 }
 
 // Categories
 model Category {
-  id          String         @id @default(uuid())
+  id          String      @id @default(uuid())
   name        String      @unique
   description String?
   products    Product[]   // One-to-many
@@ -119,7 +124,7 @@ model Product {
 
 // Purchases ( import table )
 model Purchase {
-  id            String             @id @default(uuid())
+  id            String          @id @default(uuid())
   user_id       String?
   warehouse_id  Int
   user          User?           @relation(fields: [user_id], references: [id], onDelete: SetNull)
@@ -134,7 +139,7 @@ model Purchase {
 
 // PurchaseItems ( item import from country )
 model PurchaseItem {
-  id            String       @id @default(uuid())
+  id            String    @id @default(uuid())
   purchase_id   String
   product_id    String
   purchase      Purchase  @relation(fields: [purchase_id], references: [id], onDelete: Cascade)
@@ -144,12 +149,12 @@ model PurchaseItem {
   subtotal      Decimal   @db.Decimal(10, 2)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  @@map("PurchaseItems")
+  @@map("PurchaseItems") // actual table name in db
 }
 
 // Sales ( sale to customer )
 model Sale {
-  id            String           @id @default(uuid())
+  id            String        @id @default(uuid())
   customer_id   String
   user_id       String?
   warehouse_id  Int
@@ -165,11 +170,11 @@ model Sale {
 
 // SaleItems ( details sale items )
 model SaleItem {
-  id           String       @id @default(uuid())
+  id           String    @id @default(uuid())
   sale_id      String
   product_id   String
   sale         Sale      @relation(fields: [sale_id], references: [id], onDelete: Cascade)
-  product      Product    @relation(fields: [product_id], references: [id], onDelete: Restrict)
+  product      Product   @relation(fields: [product_id], references: [id], onDelete: Restrict)
   qty          Int
   price        Decimal   @db.Decimal(10, 2)
   subtotal     Decimal   @db.Decimal(10, 2)

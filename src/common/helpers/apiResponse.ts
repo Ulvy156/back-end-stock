@@ -1,4 +1,4 @@
-import type { HttpStatusCode } from '../constant/http-status.constant';
+import type { HttpStatusCode } from '../../enum/http-status';
 import type { apiResponseType } from '../constant/response-type';
 
 export default function apiResponse<T>(

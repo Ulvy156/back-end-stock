@@ -1,5 +1,5 @@
 import { HttpException } from '@nestjs/common';
-import { HttpStatusCode } from '../constant/http-status.constant';
+import { HttpStatusCode } from '../../enum/http-status';
 import { apiResponseType } from './../constant/response-type';
 
 // Prisma error type (partial)
@@ -37,11 +37,8 @@ export function apiError(
     }
   }
 
-  console.error(error); // log for debugging
-
-  return {
-    message: errMsg,
-    status: errStatus,
-    data: null,
-  };
+  throw new HttpException(
+    { message: errMsg, status: errStatus, data: null },
+    errStatus,
+  );
 }

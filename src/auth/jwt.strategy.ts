@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -26,7 +26,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       where: { id: payload.sub },
     });
 
-    if (!user) throw new Error('User not found');
+    if (!user) {
+      throw new UnauthorizedException('Unauthorized');
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...result } = user; // remove password safely
