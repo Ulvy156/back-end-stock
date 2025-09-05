@@ -1,4 +1,4 @@
-import type { HttpStatusCode } from './http-status.constant';
+import type { HttpStatusCode } from '../../enum/http-status';
 
 export interface apiResponseType<T = any> {
   message: string;

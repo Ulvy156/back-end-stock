@@ -4,13 +4,13 @@ import { UpdateWarehouseDto } from './dto/update-warehouse.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { apiResponseType } from 'src/common/constant/response-type';
 import apiResponse from 'src/common/helpers/apiResponse';
-import { HttpStatusCode } from 'src/common/constant/http-status.constant';
+import { HttpStatusCode } from 'src/enum/http-status';
 import { apiError } from 'src/common/helpers/apiError';
 import { RoleEnum } from 'generated/prisma';
 
 @Injectable()
 export class WarehouseService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async create(
     createWarehouseDto: CreateWarehouseDto,

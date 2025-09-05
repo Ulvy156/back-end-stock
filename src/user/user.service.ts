@@ -3,13 +3,13 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import apiResponse from 'src/common/helpers/apiResponse';
-import { HttpStatusCode } from 'src/common/constant/http-status.constant';
+import { HttpStatusCode } from 'src/enum/http-status';
 import { apiError } from 'src/common/helpers/apiError';
 import { apiResponseType } from 'src/common/constant/response-type';
 import * as bcrypt from 'bcrypt';
 import { RoleEnum } from 'generated/prisma';
 import { FileuploadService } from 'src/fileupload/fileupload.service';
-import { FilePath } from 'src/enum/fileupload.enum';
+import { FilePath, FileType } from 'src/enum/fileupload.enum';
 @Injectable()
 export class UserService {
   constructor(
@@ -31,10 +31,18 @@ export class UserService {
       }
       // if photo exist than upload
       if (createUserDto.file) {
+        // check if file is valid
+        this.fileUpload.validateFile(
+          createUserDto.file,
+          [FileType.PNG, FileType.JPEG, FileType.JPEG],
+          1, // limit file <= 1 MB
+        );
         createUserDto.img_url = await this.fileUpload.uploadFile(
           createUserDto.file,
-          FilePath.CUSTOMERS,
+          FilePath.USERS,
         );
+        //remove file property before saving
+        delete createUserDto.file;
       }
       const hash = await bcrypt.hash(createUserDto.password, 10);
       const user = await this.prisma.user.create({

@@ -1,5 +1,5 @@
 import { HttpException } from '@nestjs/common';
-import { HttpStatusCode } from '../constant/http-status.constant';
+import { HttpStatusCode } from '../../enum/http-status';
 import { apiResponseType } from './../constant/response-type';
 
 // Prisma error type (partial)
@@ -36,8 +36,6 @@ export function apiError(
       errStatus = HttpStatusCode.BAD_REQUEST;
     }
   }
-
-  console.error(error); // log for debugging
 
   throw new HttpException(
     { message: errMsg, status: errStatus, data: null },

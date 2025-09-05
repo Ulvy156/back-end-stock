@@ -4,8 +4,8 @@ import { UserController } from './user.controller';
 import { FileuploadService } from 'src/fileupload/fileupload.service';
 
 @Module({
-  imports: [FileuploadService],
+  imports: [],
   controllers: [UserController],
-  providers: [UserService],
+  providers: [UserService, FileuploadService],
 })
 export class UserModule {}

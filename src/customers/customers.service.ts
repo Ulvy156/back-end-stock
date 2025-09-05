@@ -3,13 +3,13 @@ import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { apiResponseType } from 'src/common/constant/response-type';
-import { HttpStatusCode } from 'src/common/constant/http-status.constant';
+import { HttpStatusCode } from 'src/enum/http-status';
 import { apiError } from 'src/common/helpers/apiError';
 import apiResponse from 'src/common/helpers/apiResponse';
 
 @Injectable()
 export class CustomersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async create(createCustomerDto: CreateCustomerDto): Promise<apiResponseType> {
     try {

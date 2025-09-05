@@ -6,11 +6,14 @@ import {
   Patch,
   Param,
   Delete,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Public } from 'src/auth/public.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('user')
 export class UserController {
@@ -18,7 +21,14 @@ export class UserController {
 
   @Public()
   @Post()
-  async create(@Body() createUserDto: CreateUserDto) {
+  @UseInterceptors(FileInterceptor('file'))
+  async create(
+    @Body() createUserDto: CreateUserDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (file) {
+      createUserDto.file = file;
+    }
     return await this.userService.create(createUserDto);
   }
 

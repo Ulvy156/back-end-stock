@@ -7,14 +7,14 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import apiResponse from 'src/common/helpers/apiResponse';
-import { HttpStatusCode } from 'src/common/constant/http-status.constant';
+import { HttpStatusCode } from 'src/enum/http-status';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   async validateUser(email: string, password: string) {
     const user = await this.prisma.user.findUnique({ where: { email } });
