@@ -6,13 +6,35 @@ import { apiResponseType } from 'src/common/constant/response-type';
 import { HttpStatusCode } from 'src/enum/http-status';
 import { apiError } from 'src/common/helpers/apiError';
 import apiResponse from 'src/common/helpers/apiResponse';
+import { FileuploadService } from 'src/fileupload/fileupload.service';
+import { AllowImageType, FilePath } from 'src/enum/fileupload.enum';
+import { FindAllCustomer } from './customer.interface';
+import { Prisma } from 'generated/prisma';
 
 @Injectable()
 export class CustomersService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly fileUpload: FileuploadService,
+  ) {}
 
   async create(createCustomerDto: CreateCustomerDto): Promise<apiResponseType> {
     try {
+      // if photo exist than upload
+      if (createCustomerDto.file) {
+        // check if file is valid
+        this.fileUpload.validateFile(
+          createCustomerDto.file,
+          AllowImageType,
+          1, // limit file <= 1 MB
+        );
+        createCustomerDto.img_url = await this.fileUpload.uploadFile(
+          createCustomerDto.file,
+          FilePath.CUSTOMERS,
+        );
+        //remove file property before saving
+        delete createCustomerDto.file;
+      }
       const customer = await this.prisma.customer.create({
         data: createCustomerDto,
       });
@@ -22,17 +44,43 @@ export class CustomersService {
     }
   }
 
-  async findAll(page: number, limit: number = 20) {
-    const skip = (page - 1) * limit;
+  async findAll(filter: FindAllCustomer) {
+    // default value case user don't provide
+    if (!filter.page) filter.page = 1;
+    if (!filter.limit) filter.limit = 20;
+    // case user provide but query() treat as string
+    filter.page = +filter.page;
+    filter.limit = +filter.limit;
+
+    const skip = (filter.page - 1) * filter.limit;
+    const where: Prisma.CustomerWhereInput = {};
+    const orConditions: Prisma.CustomerWhereInput[] = [];
+
+    if (filter.name) {
+      orConditions.push({
+        name: { contains: filter.name, mode: 'insensitive' },
+      });
+    }
+
+    if (filter.phone_number) {
+      orConditions.push({
+        phone: { contains: filter.phone_number, mode: 'insensitive' },
+      });
+    }
+
+    if (orConditions.length > 0) {
+      where.OR = orConditions;
+    }
     const [customers, total] = await this.prisma.$transaction([
       this.prisma.customer.findMany({
         skip,
-        take: limit,
+        take: filter.limit,
+        where,
         orderBy: { createdAt: 'desc' }, // optional
       }),
       this.prisma.customer.count(),
     ]);
-    const lastPage = Math.ceil(total / limit);
+    const lastPage = Math.ceil(total / filter.limit);
     const meta = {
       customers,
       total,
@@ -60,6 +108,22 @@ export class CustomersService {
       const currentCustomer = await this.prisma.customer.findFirst({
         where: { id },
       });
+      // if photo exist than upload
+      if (updateCustomerDto.file) {
+        // check if file is valid
+        this.fileUpload.validateFile(
+          updateCustomerDto.file,
+          AllowImageType,
+          1, // limit file <= 1 MB
+        );
+        updateCustomerDto.img_url = await this.fileUpload.replaceFile(
+          currentCustomer?.img_url ?? null,
+          updateCustomerDto.file,
+          FilePath.CUSTOMERS,
+        );
+        //remove file property before saving
+        delete updateCustomerDto.file;
+      }
 
       if (!currentCustomer) {
         return apiResponse(404, 'Customer not found', null);

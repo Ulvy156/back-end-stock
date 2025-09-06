@@ -19,4 +19,10 @@ export class CreateCustomerDto {
 
   @IsOptional()
   img_url?: string;
+
+  @IsString()
+  created_by_user_id?: string;
+
+  @IsOptional()
+  file?: Express.Multer.File;
 }

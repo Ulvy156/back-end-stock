@@ -27,6 +27,11 @@ async function bootstrap() {
   //enable cors
   app.enableCors(corsConfig);
 
+  app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] Incoming request: ${req.method} ${req.originalUrl}`);
+  next();
+});
+
   await app.listen(process.env.PORT ?? 3000);
 }
 void bootstrap();

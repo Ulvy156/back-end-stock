@@ -21,7 +21,7 @@ export class FileuploadService {
     await fs.mkdir(uploadDir, { recursive: true });
 
     // Generate unique filename
-    const uniqueName = `${crypto.randomUUID()}-${file.originalname}`;
+    const uniqueName = this.uniqueNameFile(file);
     const filePath = join(uploadDir, uniqueName);
 
     // Save file
@@ -29,6 +29,48 @@ export class FileuploadService {
 
     // Return public path
     return process.env.BASE_URL + `/uploads/${subfolder}/${uniqueName}`;
+  }
+
+  async replaceFile(
+    oldFileUrl: string | null, // full URL from user
+    newFile: Express.Multer.File,
+    subfolder: FilePath,
+  ): Promise<string> {
+    // Extract filename from full URL
+    let oldFilename: string | null = null;
+    if (oldFileUrl) {
+      // e.g., oldFileUrl = http://example.com/uploads/users/abc.png
+      oldFilename = oldFileUrl.split('/').pop() || null;
+    }
+
+    // Delete old file if exists
+    if (oldFilename) {
+      const oldPath = join(process.cwd(), this.folder, subfolder, oldFilename);
+      await fs.unlink(oldPath).catch(() => null);
+    }
+
+    // Upload new file
+    const uploadDir = join(process.cwd(), this.folder, subfolder);
+    await fs.mkdir(uploadDir, { recursive: true });
+
+    const uniqueName = this.uniqueNameFile(newFile);
+    const filePath = join(uploadDir, uniqueName);
+    await fs.writeFile(filePath, newFile.buffer);
+
+    // Return new full URL
+    return process.env.BASE_URL + `/uploads/${subfolder}/${uniqueName}`;
+  }
+
+  uniqueNameFile(file: Express.Multer.File) {
+    if (!file) return '';
+
+    return `${crypto.randomUUID()}.${this.getFileExtension(file)}`;
+  }
+
+  getFileExtension(file: Express.Multer.File) {
+    if (!file) return '';
+
+    return file.originalname.split('.').pop();
   }
 
   validateFile(
