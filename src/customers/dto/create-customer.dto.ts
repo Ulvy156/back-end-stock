@@ -11,10 +11,7 @@ export class CreateCustomerDto {
   telegram: string;
 
   @IsString()
-  province: string;
-
-  @IsString()
-  district: string;
+  district_id: string;
 
   @IsString()
   address: string;
