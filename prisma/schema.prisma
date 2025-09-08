@@ -50,12 +50,32 @@ model User {
   updatedAt     DateTime        @updatedAt
 }
 
+model Provinces {
+  id            Int       @id @default(autoincrement())
+  name          String    @unique
+  district      Districts[] // one-to-many
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+model Districts {
+  id            Int       @id @default(autoincrement())
+  name          String    
+  province_id   Int
+  province      Provinces @relation(fields: [province_id], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([province_id])
+  @@unique([province_id, name]) // name unique per province
+}
 // Customers
 model Customer {
   id            String    @id @default(uuid())
   name          String
   phone         String?   @unique
   telegram      String?
+  province      String    @default("Unknown")
+  district      String    @default("Unknown")
   address       String?
   img_url       String?
   lastOrderDate DateTime?
@@ -72,6 +92,8 @@ model Customer {
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  @@index([phone, telegram, created_by_user_id, updated_by_user_id])
 }
 
 // Warehouses
@@ -89,6 +111,8 @@ model Warehouse {
   users         User[]            // Many-to-one with Users
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
+
+  @@index([type])
 }
 
 
@@ -130,6 +154,8 @@ model Product {
   product_stocks ProductWarehouse[] // One-to-many
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
+
+  @@index([category_id])
 }
 
 // Purchases ( import table )
@@ -145,6 +171,8 @@ model Purchase {
   purchase_items PurchaseItem[] // One-to-many
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
+
+  @@index([user_id, warehouse_id])
 }
 
 // PurchaseItems ( item import from country )
@@ -159,6 +187,8 @@ model PurchaseItem {
   subtotal      Decimal   @db.Decimal(10, 2)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  @@index([purchase_id, product_id])
   @@map("PurchaseItems") // actual table name in db
 }
 
@@ -176,6 +206,8 @@ model Sale {
   sale_items    SaleItem[]    // One-to-many
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+
+  @@index([customer_id, warehouse_id])
 }
 
 // SaleItems ( details sale items )
@@ -190,6 +222,8 @@ model SaleItem {
   subtotal     Decimal   @db.Decimal(10, 2)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+
+  @@index([sale_id, product_id])
   @@map("SaleItems")
 }
 
