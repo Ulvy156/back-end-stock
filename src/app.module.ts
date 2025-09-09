@@ -8,6 +8,8 @@ import { AuthModule } from './auth/auth.module';
 import { CustomersModule } from './customers/customers.module';
 import { WarehouseModule } from './warehouse/warehouse.module';
 import { FileuploadModule } from './fileupload/fileupload.module';
+import { ProvinceModule } from './location/province/province.module';
+import { DistrictModule } from './location/district/district.module';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { FileuploadModule } from './fileupload/fileupload.module';
     CustomersModule,
     WarehouseModule,
     FileuploadModule,
+    ProvinceModule,
+    DistrictModule,
   ],
   controllers: [AppController],
   providers: [AppService],
