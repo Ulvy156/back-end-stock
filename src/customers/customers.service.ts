@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -94,7 +94,7 @@ export class CustomersService {
       const customer = await this.prisma.customer.findFirst({ where: { id } });
 
       if (!customer) {
-        return apiResponse(404, 'Customer not found', null);
+        throw new NotFoundException('Customer not found');
       }
 
       return apiResponse(HttpStatusCode.OK, 'Success', customer);
@@ -126,7 +126,7 @@ export class CustomersService {
       }
 
       if (!currentCustomer) {
-        return apiResponse(404, 'Customer not found', null);
+        throw new NotFoundException('Customer not found');
       }
 
       const updatedCustomer = await this.prisma.customer.update({
@@ -150,7 +150,7 @@ export class CustomersService {
       });
 
       if (!currentCustomer) {
-        return apiResponse(404, 'Customer not found', null);
+        throw new NotFoundException('Customer not found');
       }
 
       const deletedCustomer = await this.prisma.customer.delete({

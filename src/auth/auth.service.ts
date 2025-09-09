@@ -1,12 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 // auth.service.ts
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
-import apiResponse from 'src/common/helpers/apiResponse';
-import { HttpStatusCode } from 'src/enum/http-status';
 
 @Injectable()
 export class AuthService {
@@ -18,8 +15,9 @@ export class AuthService {
   async validateUser(email: string, password: string) {
     const user = await this.prisma.user.findUnique({ where: { email } });
     if (user && (await bcrypt.compare(password, user.password))) {
-      const { password, ...result } = user;
-      return result;
+      // omit password properly
+      const safeUser = { ...user, password: undefined };
+      return safeUser;
     }
     return null;
   }

@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateWarehouseDto } from './dto/create-warehouse.dto';
 import { UpdateWarehouseDto } from './dto/update-warehouse.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -10,7 +14,7 @@ import { RoleEnum } from 'generated/prisma';
 
 @Injectable()
 export class WarehouseService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(
     createWarehouseDto: CreateWarehouseDto,
@@ -54,7 +58,7 @@ export class WarehouseService {
         where: { id },
       });
       if (!warehouse) {
-        return apiResponse(HttpStatusCode.NOT_FOUND, 'Warehouse not found');
+        throw new NotFoundException('Warehouse not found');
       }
       return apiResponse(HttpStatusCode.CREATED, 'Warehouse', warehouse);
     } catch (error) {
@@ -71,7 +75,7 @@ export class WarehouseService {
         },
       });
       if (!warehouse) {
-        return apiResponse(HttpStatusCode.NOT_FOUND, 'Warehouse not found');
+        throw new NotFoundException('Warehouse not found');
       }
       return apiResponse(HttpStatusCode.CREATED, 'Warehouse', warehouse);
     } catch (error) {
@@ -86,7 +90,7 @@ export class WarehouseService {
       });
 
       if (!currentWarehouse) {
-        return apiResponse(404, 'Warehouse not found', null);
+        throw new NotFoundException('Warehouse not found');
       }
 
       const updatedWarehouse = await this.prisma.warehouse.update({
@@ -110,7 +114,7 @@ export class WarehouseService {
       });
 
       if (!currentWarehouse) {
-        return apiResponse(404, 'Warehouse not found', null);
+        throw new NotFoundException('Warehouse not found');
       }
 
       const deletedWarehouse = this.prisma.warehouse.delete({
@@ -133,12 +137,11 @@ export class WarehouseService {
     try {
       const user = await this.prisma.user.findFirst({ where: { id: user_id } });
       if (!user) {
-        return apiResponse(HttpStatusCode.NOT_FOUND, 'User not found');
+        throw new NotFoundException('User not found');
       }
       // if user is not warehouse manager
       if (user.role !== RoleEnum.WAREHOUSE_MANAGER) {
-        return apiResponse(
-          HttpStatusCode.BAD_REQUEST,
+        throw new BadRequestException(
           'Only user has role WAREHOUSE MANAGER can be assigned',
         );
       }
@@ -148,7 +151,7 @@ export class WarehouseService {
         where: { id: warehouse_id },
       });
       if (!warehouse) {
-        return apiResponse(HttpStatusCode.NOT_FOUND, 'Warehouse not found');
+        throw new NotFoundException('Warehouse not found');
       }
 
       // check if already has manager
@@ -163,11 +166,7 @@ export class WarehouseService {
         },
       });
       if (hasManager && hasManager.users.length > 0) {
-        return apiResponse(
-          HttpStatusCode.NOT_FOUND,
-          'Warehouse already has manager',
-          hasManager,
-        );
+        throw new BadRequestException('Warehouse already has manager');
       }
 
       //create warehouse
@@ -196,12 +195,11 @@ export class WarehouseService {
     try {
       const user = await this.prisma.user.findFirst({ where: { id: user_id } });
       if (!user) {
-        return apiResponse(HttpStatusCode.NOT_FOUND, 'User not found');
+        throw new NotFoundException('User not found');
       }
       // if user is not warehouse manager
       if (user.role === RoleEnum.WAREHOUSE_MANAGER) {
-        return apiResponse(
-          HttpStatusCode.BAD_REQUEST,
+        throw new BadRequestException(
           'User has role WAREHOUSE MANAGER can not be assigned',
         );
       }
@@ -211,7 +209,7 @@ export class WarehouseService {
         where: { id: warehouse_id },
       });
       if (!warehouse) {
-        return apiResponse(HttpStatusCode.NOT_FOUND, 'Warehouse not found');
+        throw new NotFoundException('Warehouse not found');
       }
 
       //create warehouse
