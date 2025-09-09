@@ -10,6 +10,8 @@ import { WarehouseModule } from './warehouse/warehouse.module';
 import { FileuploadModule } from './fileupload/fileupload.module';
 import { ProvinceModule } from './location/province/province.module';
 import { DistrictModule } from './location/district/district.module';
+import { ProductModule } from './Productions/product/product.module';
+import { CategoryModule } from './Productions/category/category.module';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { DistrictModule } from './location/district/district.module';
     FileuploadModule,
     ProvinceModule,
     DistrictModule,
+    ProductModule,
+    CategoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

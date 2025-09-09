@@ -165,8 +165,8 @@ model Product {
   unit          String
   cost_price    Decimal           @db.Decimal(10, 2)
   selling_price Decimal           @db.Decimal(10, 2)
-  category_id   String?
-  category      Category?         @relation(fields: [category_id], references: [id], onDelete: SetNull)
+  category_id   String
+  category      Category          @relation(fields: [category_id], references: [id], onDelete: Cascade)
   purchase_items PurchaseItem[]    // One-to-many
   sale_items    SaleItem[]        // One-to-many
   product_stocks ProductWarehouse[] // One-to-many
