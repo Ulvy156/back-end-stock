@@ -1,4 +1,4 @@
-import { IsNumber, IsString } from 'class-validator';
+import { IsNumber, IsString, IsUrl } from 'class-validator';
 
 export class CreateProductDto {
   @IsString()
@@ -18,4 +18,7 @@ export class CreateProductDto {
 
   @IsString()
   category_id: string;
+
+  @IsUrl()
+  img_url?: string;
 }

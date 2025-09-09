@@ -4,6 +4,7 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { apiError } from 'src/common/helpers/apiError';
 import apiResponse from 'src/common/helpers/apiResponse';
+import { HttpStatusCode } from 'src/enum/http-status';
 
 @Injectable()
 export class CategoryService {
@@ -23,21 +24,41 @@ export class CategoryService {
   async findAll() {
     try {
       const categories = await this.prisma.category.findMany();
-      return apiResponse(200, 'Categories list', categories);
+      return apiResponse(HttpStatusCode.OK, 'Categories list', categories);
     } catch (error) {
       return apiError(error);
     }
   }
 
+  private async getCategoryById(id: string) {
+    const category = await this.prisma.category.findUnique({
+      where: { id },
+    });
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+    return category;
+  }
+
   async findOne(id: string) {
     try {
-      const category = await this.prisma.category.findUnique({
+      const category = await this.getCategoryById(id);
+      return apiResponse(HttpStatusCode.OK, 'Category', category);
+    } catch (error) {
+      return apiError(error);
+    }
+  }
+
+  async findCategoryWithProduct(id: string) {
+    try {
+      await this.getCategoryById(id);
+      const categoryWithProducts = await this.prisma.category.findUnique({
         where: { id },
+        include: {
+          products: true,
+        },
       });
-      if (!category) {
-        throw new NotFoundException('Category not found');
-      }
-      return apiResponse(200, 'Category', category);
+      return apiResponse(200, 'Category with products', categoryWithProducts);
     } catch (error) {
       return apiError(error);
     }
@@ -45,17 +66,12 @@ export class CategoryService {
 
   async update(id: string, updateCategoryDto: UpdateCategoryDto) {
     try {
-      const category = await this.prisma.category.findUnique({
-        where: { id },
-      });
-      if (!category) {
-        throw new NotFoundException('Category not found');
-      }
+      await this.getCategoryById(id);
       await this.prisma.category.update({
         where: { id },
         data: updateCategoryDto,
       });
-      return apiResponse(200, 'Category updated');
+      return apiResponse(HttpStatusCode.OK, 'Category updated');
     } catch (error) {
       return apiError(error);
     }
@@ -63,15 +79,12 @@ export class CategoryService {
 
   async remove(id: string) {
     try {
-      const category = await this.prisma.category.findUnique({
-        where: { id },
-      });
-      if (!category) {
-        throw new NotFoundException('Category not found');
-      }
+      await this.getCategoryById(id);
       await this.prisma.category.delete({
         where: { id },
       });
+
+      return apiResponse(HttpStatusCode.OK, 'Category deleted');
     } catch (error) {
       return apiError(error);
     }

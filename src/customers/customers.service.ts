@@ -89,13 +89,19 @@ export class CustomersService {
     return apiResponse(HttpStatusCode.OK, 'Success', meta);
   }
 
+  private async getCustomerById(id: string) {
+    const customer = await this.prisma.customer.findUnique({
+      where: { id },
+    });
+    if (!customer) {
+      throw new NotFoundException('Customer not found');
+    }
+    return customer;
+  }
+
   async findOne(id: string) {
     try {
-      const customer = await this.prisma.customer.findFirst({ where: { id } });
-
-      if (!customer) {
-        throw new NotFoundException('Customer not found');
-      }
+      const customer = await this.getCustomerById(id);
 
       return apiResponse(HttpStatusCode.OK, 'Success', customer);
     } catch (error) {
@@ -105,9 +111,7 @@ export class CustomersService {
 
   async update(id: string, updateCustomerDto: UpdateCustomerDto) {
     try {
-      const currentCustomer = await this.prisma.customer.findFirst({
-        where: { id },
-      });
+      const currentCustomer = await this.getCustomerById(id);
       // if photo exist than upload
       if (updateCustomerDto.file) {
         // check if file is valid
@@ -145,22 +149,12 @@ export class CustomersService {
 
   async remove(id: string) {
     try {
-      const currentCustomer = await this.prisma.customer.findFirst({
+      await this.getCustomerById(id);
+
+      await this.prisma.customer.delete({
         where: { id },
       });
-
-      if (!currentCustomer) {
-        throw new NotFoundException('Customer not found');
-      }
-
-      const deletedCustomer = await this.prisma.customer.delete({
-        where: { id },
-      });
-      return apiResponse(
-        HttpStatusCode.OK,
-        'Deleted customer success',
-        deletedCustomer,
-      );
+      return apiResponse(HttpStatusCode.OK, 'Deleted customer success');
     } catch (error) {
       return apiError(error);
     }

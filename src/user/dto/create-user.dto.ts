@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsEmail,
   IsEnum,
@@ -24,6 +25,7 @@ export class CreateUserDto {
 
   @IsNumber()
   @IsOptional()
+  @Type(() => Number)
   warehouse_id?: number;
 
   @IsOptional()

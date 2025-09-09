@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { DistrictService } from './district.service';
 import { CreateDistrictDto } from './dto/create-district.dto';
 import { UpdateDistrictDto } from './dto/update-district.dto';
@@ -8,27 +16,30 @@ export class DistrictController {
   constructor(private readonly districtService: DistrictService) {}
 
   @Post()
-  create(@Body() createDistrictDto: CreateDistrictDto) {
-    return this.districtService.create(createDistrictDto);
+  async create(@Body() createDistrictDto: CreateDistrictDto) {
+    return await this.districtService.create(createDistrictDto);
   }
 
   @Get()
-  findAll() {
-    return this.districtService.findAll();
+  async findAll() {
+    return await this.districtService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.districtService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    return await this.districtService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDistrictDto: UpdateDistrictDto) {
-    return this.districtService.update(+id, updateDistrictDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updateDistrictDto: UpdateDistrictDto,
+  ) {
+    return await this.districtService.update(id, updateDistrictDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.districtService.remove(+id);
+  async remove(@Param('id') id: string) {
+    return await this.districtService.remove(id);
   }
 }

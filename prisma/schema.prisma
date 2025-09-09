@@ -166,6 +166,7 @@ model Product {
   cost_price    Decimal           @db.Decimal(10, 2)
   selling_price Decimal           @db.Decimal(10, 2)
   category_id   String
+  img_url       String?
   category      Category          @relation(fields: [category_id], references: [id], onDelete: Cascade)
   purchase_items PurchaseItem[]    // One-to-many
   sale_items    SaleItem[]        // One-to-many

@@ -30,6 +30,11 @@ export class CategoryController {
     return await this.categoryService.findOne(id);
   }
 
+  @Get('/category-with-products/:id')
+  async findCategoryWithProduct(@Param('id') id: string) {
+    return await this.categoryService.findCategoryWithProduct(id);
+  }
+
   @Patch(':id')
   async update(
     @Param('id') id: string,

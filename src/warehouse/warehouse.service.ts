@@ -52,14 +52,19 @@ export class WarehouseService {
     return apiResponse(HttpStatusCode.OK, 'Success', meta);
   }
 
+  private async getWarehouseById(id: number) {
+    const warehouse = await this.prisma.warehouse.findUnique({
+      where: { id },
+    });
+    if (!warehouse) {
+      throw new NotFoundException('Category not found');
+    }
+    return warehouse;
+  }
+
   async findOne(id: number) {
     try {
-      const warehouse = await this.prisma.warehouse.findFirst({
-        where: { id },
-      });
-      if (!warehouse) {
-        throw new NotFoundException('Warehouse not found');
-      }
+      const warehouse = await this.getWarehouseById(id);
       return apiResponse(HttpStatusCode.CREATED, 'Warehouse', warehouse);
     } catch (error) {
       return apiError(error);
@@ -85,23 +90,13 @@ export class WarehouseService {
 
   async update(id: number, updateWarehouseDto: UpdateWarehouseDto) {
     try {
-      const currentWarehouse = await this.prisma.warehouse.findFirst({
-        where: { id },
-      });
+      await this.getWarehouseById(id);
 
-      if (!currentWarehouse) {
-        throw new NotFoundException('Warehouse not found');
-      }
-
-      const updatedWarehouse = await this.prisma.warehouse.update({
+      await this.prisma.warehouse.update({
         where: { id },
         data: updateWarehouseDto,
       });
-      return apiResponse(
-        HttpStatusCode.OK,
-        'Updated warehouse success',
-        updatedWarehouse,
-      );
+      return apiResponse(HttpStatusCode.OK, 'Updated warehouse success');
     } catch (error) {
       return apiError(error);
     }
@@ -109,14 +104,7 @@ export class WarehouseService {
 
   async remove(id: number) {
     try {
-      const currentWarehouse = await this.prisma.warehouse.findFirst({
-        where: { id },
-      });
-
-      if (!currentWarehouse) {
-        throw new NotFoundException('Warehouse not found');
-      }
-
+      await this.getWarehouseById(id);
       const deletedWarehouse = this.prisma.warehouse.delete({
         where: { id },
       });

@@ -4,6 +4,7 @@ import { UpdateDistrictDto } from './dto/update-district.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import apiResponse from 'src/common/helpers/apiResponse';
 import { apiError } from 'src/common/helpers/apiError';
+import { HttpStatusCode } from 'src/enum/http-status';
 
 @Injectable()
 export class DistrictService {
@@ -23,21 +24,26 @@ export class DistrictService {
   async findAll() {
     try {
       const districts = await this.prisma.districts.findMany();
-      return apiResponse(200, 'Districts', districts);
+      return apiResponse(HttpStatusCode.OK, 'Districts', districts);
     } catch (error) {
       return apiError(error);
     }
   }
 
+  private async getDistrictById(id: string) {
+    const category = await this.prisma.category.findUnique({
+      where: { id },
+    });
+    if (!category) {
+      throw new NotFoundException('District not found');
+    }
+    return category;
+  }
+
   async findOne(id: string) {
     try {
-      const district = await this.prisma.districts.findUnique({
-        where: { id },
-      });
-      if (!district) {
-        throw new NotFoundException('District not found');
-      }
-      return apiResponse(200, 'Districts', district);
+      const district = await this.getDistrictById(id);
+      return apiResponse(HttpStatusCode.OK, 'Districts', district);
     } catch (error) {
       return apiError(error);
     }
@@ -45,17 +51,12 @@ export class DistrictService {
 
   async update(id: string, updateDistrictDto: UpdateDistrictDto) {
     try {
-      const district = await this.prisma.districts.findUnique({
-        where: { id },
-      });
-      if (!district) {
-        throw new NotFoundException('District not found');
-      }
+      await this.getDistrictById(id);
       await this.prisma.districts.update({
         where: { id },
         data: updateDistrictDto,
       });
-      return apiResponse(200, 'District updated');
+      return apiResponse(HttpStatusCode.OK, 'District updated');
     } catch (error) {
       return apiError(error);
     }
@@ -63,15 +64,11 @@ export class DistrictService {
 
   async remove(id: string) {
     try {
-      const district = await this.prisma.districts.findUnique({
-        where: { id },
-      });
-      if (!district) {
-        throw new NotFoundException('District not found');
-      }
+      await this.getDistrictById(id);
       await this.prisma.districts.delete({
         where: { id },
       });
+      return apiResponse(HttpStatusCode.OK, 'District deleted');
     } catch (error) {
       return apiError(error);
     }
