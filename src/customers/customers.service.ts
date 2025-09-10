@@ -47,7 +47,7 @@ export class CustomersService {
   async findAll(filter: FindAllCustomer) {
     // default value case user don't provide
     if (!filter.page) filter.page = 1;
-    if (!filter.limit) filter.limit = 20;
+    if (!filter.limit) filter.limit = 30;
     // case user provide but query() treat as string
     filter.page = +filter.page;
     filter.limit = +filter.limit;
@@ -64,7 +64,7 @@ export class CustomersService {
 
     if (filter.phone_number) {
       orConditions.push({
-        phone: { contains: filter.phone_number, mode: 'insensitive' },
+        phone: { contains: filter.phone_number },
       });
     }
 
@@ -77,6 +77,13 @@ export class CustomersService {
         take: filter.limit,
         where,
         orderBy: { createdAt: 'desc' }, // optional
+        include: {
+          district: {
+            include: {
+              province: true,
+            },
+          },
+        },
       }),
       this.prisma.customer.count(),
     ]);
@@ -101,8 +108,17 @@ export class CustomersService {
 
   async findOne(id: string) {
     try {
-      const customer = await this.getCustomerById(id);
-
+      await this.getCustomerById(id);
+      const customer = await this.prisma.customer.findUnique({
+        where: { id },
+        include: {
+          district: {
+            include: {
+              province: true,
+            },
+          },
+        },
+      });
       return apiResponse(HttpStatusCode.OK, 'Success', customer);
     } catch (error) {
       return apiError(error);

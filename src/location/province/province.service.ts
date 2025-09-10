@@ -49,6 +49,25 @@ export class ProvinceService {
     }
   }
 
+  async findProvinceIncludeDistrict(id: number) {
+    try {
+      await this.getProvinceById(id);
+      const provinceWithDistrict = await this.prisma.provinces.findUnique({
+        where: { id },
+        include: {
+          district: true,
+        },
+      });
+      return apiResponse(
+        HttpStatusCode.OK,
+        'Province with districts',
+        provinceWithDistrict,
+      );
+    } catch (error) {
+      return apiError(error);
+    }
+  }
+
   async update(id: number, updateProvinceDto: UpdateProvinceDto) {
     try {
       await this.getProvinceById(id);

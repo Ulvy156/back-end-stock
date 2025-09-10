@@ -30,6 +30,11 @@ export class ProvinceController {
     return await this.provinceService.findOne(+id);
   }
 
+  @Get('/districts/:id')
+  async findProvinceIncludeDistrict(@Param('id') id: string) {
+    return await this.provinceService.findProvinceIncludeDistrict(+id);
+  }
+
   @Patch(':id')
   async update(
     @Param('id') id: string,

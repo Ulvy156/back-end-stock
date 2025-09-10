@@ -31,7 +31,7 @@ export class DistrictService {
   }
 
   private async getDistrictById(id: string) {
-    const category = await this.prisma.category.findUnique({
+    const category = await this.prisma.districts.findUnique({
       where: { id },
     });
     if (!category) {
