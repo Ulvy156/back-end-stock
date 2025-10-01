@@ -47,36 +47,60 @@ export class CustomersService {
   async findAll(filter: FindAllCustomer) {
     // default value case user don't provide
     if (!filter.page) filter.page = 1;
-    if (!filter.limit) filter.limit = 30;
+    if (!filter.limit) filter.limit = 20;
     // case user provide but query() treat as string
     filter.page = +filter.page;
     filter.limit = +filter.limit;
+    filter.province_id = +filter.province_id;
 
     const skip = (filter.page - 1) * filter.limit;
     const where: Prisma.CustomerWhereInput = {};
-    const orConditions: Prisma.CustomerWhereInput[] = [];
+    const andConditions: Prisma.CustomerWhereInput[] = [];
 
     if (filter.name) {
-      orConditions.push({
+      andConditions.push({
         name: { contains: filter.name, mode: 'insensitive' },
       });
     }
 
     if (filter.phone_number) {
-      orConditions.push({
+      andConditions.push({
         phone: { contains: filter.phone_number },
       });
     }
 
-    if (orConditions.length > 0) {
-      where.OR = orConditions;
+    if (filter.district_id) {
+      andConditions.push({
+        district: { id: filter.district_id },
+      });
     }
+
+    if (filter.province_id) {
+      andConditions.push({
+        district: {
+          province: {
+            id: filter.province_id,
+          },
+        },
+      });
+    }
+
+    if (filter.type) {
+      andConditions.push({
+        type: { equals: filter.type },
+      });
+    }
+
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
+    }
+
     const [customers, total] = await this.prisma.$transaction([
       this.prisma.customer.findMany({
         skip,
         take: filter.limit,
         where,
-        orderBy: { createdAt: 'desc' }, // optional
+        orderBy: { createdAt: 'desc' },
         include: {
           district: {
             include: {
@@ -85,15 +109,114 @@ export class CustomersService {
           },
         },
       }),
-      this.prisma.customer.count(),
+      this.prisma.customer.count({ where }),
     ]);
+    const current_total = customers.length;
     const lastPage = Math.ceil(total / filter.limit);
     const meta = {
       customers,
       total,
       lastPage,
+      current_total,
     };
     return apiResponse(HttpStatusCode.OK, 'Success', meta);
+  }
+
+  // get percentage compare last and current month
+  private percentChange(current: number, last: number): number {
+    if (last === 0) return current > 0 ? 100 : 0;
+    return Math.round(((current - last) / last) * 100);
+  }
+  // get type of customer ( retail...)
+  async getCustomerSummary() {
+    try {
+      // 📅 date ranges
+      const startOfCurrentMonth = new Date();
+      startOfCurrentMonth.setDate(1);
+
+      const startOfLastMonth = new Date(startOfCurrentMonth);
+      startOfLastMonth.setMonth(startOfLastMonth.getMonth() - 1);
+
+      const endOfLastMonth = new Date(startOfCurrentMonth);
+      endOfLastMonth.setDate(0); // last day of previous month
+
+      // current month counts
+      const [current_total, current_retails, current_wholesale, current_both] =
+        await this.prisma.$transaction([
+          this.prisma.customer.count({
+            where: { createdAt: { gte: startOfCurrentMonth } },
+          }),
+          this.prisma.customer.count({
+            where: { type: 'RETAIL', createdAt: { gte: startOfCurrentMonth } },
+          }),
+          this.prisma.customer.count({
+            where: {
+              type: 'WHOLESALE',
+              createdAt: { gte: startOfCurrentMonth },
+            },
+          }),
+          this.prisma.customer.count({
+            where: { type: 'BOTH', createdAt: { gte: startOfCurrentMonth } },
+          }),
+        ]);
+
+      // last month counts
+      const [lastTotal, lastRetails, lastWholesale, lastBoth] =
+        await this.prisma.$transaction([
+          this.prisma.customer.count({
+            where: {
+              createdAt: { gte: startOfLastMonth, lte: endOfLastMonth },
+            },
+          }),
+          this.prisma.customer.count({
+            where: {
+              type: 'RETAIL',
+              createdAt: { gte: startOfLastMonth, lte: endOfLastMonth },
+            },
+          }),
+          this.prisma.customer.count({
+            where: {
+              type: 'WHOLESALE',
+              createdAt: { gte: startOfLastMonth, lte: endOfLastMonth },
+            },
+          }),
+          this.prisma.customer.count({
+            where: {
+              type: 'BOTH',
+              createdAt: { gte: startOfLastMonth, lte: endOfLastMonth },
+            },
+          }),
+        ]);
+
+      // all month counts
+      const [total, retails, wholesale, both] = await this.prisma.$transaction([
+        this.prisma.customer.count(),
+        this.prisma.customer.count({
+          where: { type: 'RETAIL' },
+        }),
+        this.prisma.customer.count({
+          where: { type: 'WHOLESALE' },
+        }),
+        this.prisma.customer.count({
+          where: { type: 'BOTH' },
+        }),
+      ]);
+
+      return apiResponse(200, 'Customer summary', {
+        total,
+        retails,
+        wholesale,
+        both,
+        percentChanges: {
+          total: this.percentChange(current_total, lastTotal),
+          retails: this.percentChange(current_retails, lastRetails),
+          wholesale: this.percentChange(current_wholesale, lastWholesale),
+          both: this.percentChange(current_both, lastBoth),
+        },
+      });
+    } catch (error) {
+      return apiError(error);
+    }
   }
 
   private async getCustomerById(id: string) {
@@ -120,6 +243,46 @@ export class CustomersService {
         },
       });
       return apiResponse(HttpStatusCode.OK, 'Success', customer);
+    } catch (error) {
+      return apiError(error);
+    }
+  }
+
+  async customerDetails(id: string) {
+    try {
+      await this.getCustomerById(id);
+      const customer = await this.prisma.customer.findUnique({
+        where: { id },
+        include: {
+          district: {
+            include: {
+              province: { select: { name: true } },
+            },
+          },
+          createdBy: {
+            select: {
+              name: true,
+              role: true,
+              email: true,
+              img_url: true,
+              phone: true,
+              createdAt: true,
+            },
+          },
+          updatedBy: {
+            select: {
+              name: true,
+              role: true,
+              email: true,
+              img_url: true,
+              phone: true,
+              updatedAt: true,
+            },
+          },
+          sales: true,
+        },
+      });
+      return apiResponse(HttpStatusCode.OK, 'Customer details', customer);
     } catch (error) {
       return apiError(error);
     }

@@ -26,9 +26,9 @@ enum WarehouseType {
   TEMPORARY
 }
 enum CustomerType {
-  RETAILS
+  RETAIL
   WHOLESALE
-  VIP
+  BOTH
 }
 // Users
 model User {
@@ -37,6 +37,7 @@ model User {
   email         String          @unique
   password      String
   img_url       String?
+  phone         String?         @unique
   role          RoleEnum        @default(SELLER)
   purchases     Purchase[]      // One-to-many
   sales         Sale[]          // One-to-many
@@ -83,6 +84,7 @@ model Customer {
   name          String
   phone         String?   @unique
   telegram      String?
+  type          CustomerType  @default(RETAIL)
 
   address       String?
   img_url       String?
@@ -129,7 +131,6 @@ model Warehouse {
   @@map("warehouse")
 }
 
-
 // ProductWarehouse (stock per product per warehouse)
 model ProductWarehouse {
   product_id    String
@@ -144,7 +145,6 @@ model ProductWarehouse {
 
   @@map("product_warehouse")
 }
-
 // Categories
 model Category {
   id          String      @id @default(uuid())

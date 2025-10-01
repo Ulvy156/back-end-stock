@@ -37,9 +37,19 @@ export class CustomersController {
     return await this.customersService.findAll(filter);
   }
 
+  @Get('/customer-summary')
+  async getCustomerSummary() {
+    return await this.customersService.getCustomerSummary();
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return await this.customersService.findOne(id);
+  }
+
+  @Get('/customer-details/:id')
+  async customerDetails(@Param('id') id: string) {
+    return await this.customersService.customerDetails(id);
   }
 
   @Patch(':id')
