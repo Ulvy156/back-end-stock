@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsUrl } from 'class-validator';
+import { IsNumber, IsOptional, IsString, IsUrl } from 'class-validator';
 
 export class CreateCustomerDto {
   @IsString()
@@ -10,8 +10,8 @@ export class CreateCustomerDto {
   @IsString()
   telegram: string;
 
-  @IsString()
-  address: string;
+  @IsNumber()
+  provinceId: number;
 
   @IsUrl()
   @IsOptional()

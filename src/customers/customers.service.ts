@@ -9,7 +9,7 @@ import apiResponse from 'src/common/helpers/apiResponse';
 
 @Injectable()
 export class CustomersService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(createCustomerDto: CreateCustomerDto): Promise<apiResponseType> {
     try {

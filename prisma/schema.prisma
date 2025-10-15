@@ -83,7 +83,7 @@ model Provinces {
   district      Districts[] // one-to-many
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-
+  customers     Customer[]
   @@map("province")
 }
 model Districts {
@@ -91,8 +91,6 @@ model Districts {
   name          String    
   province_id   Int
   province      Provinces @relation(fields: [province_id], references: [id], onDelete: Cascade)
-
-  customers     Customer[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -107,7 +105,8 @@ model Customer {
   name          String
   phone         String?   @unique
   telegram      String?
-  address       String?
+  provinceId    Int
+  province      Provinces @relation(fields: [provinceId], references: [id])
   img_url       String?
   lastOrderDate DateTime?
   totalOrders   Int       @default(0)
