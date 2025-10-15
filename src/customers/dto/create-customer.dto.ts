@@ -1,6 +1,7 @@
 import {
   IsEnum,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   IsUrl,
@@ -24,9 +25,9 @@ export class CreateCustomerDto {
   @IsEnum(CustomerType)
   type?: CustomerType;
 
-  @IsString()
+  @IsNumber()
   @IsNotEmpty()
-  district_id: string;
+  province_id: number;
 
   @IsString()
   @IsNotEmpty()

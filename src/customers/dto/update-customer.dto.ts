@@ -27,7 +27,7 @@ export class UpdateCustomerDto extends PartialType(CreateCustomerDto) {
   updated_by_user_id?: string;
 
   @IsString()
-  district_id: string;
+  province_id: number;
 
   @IsOptional()
   img_url?: string;

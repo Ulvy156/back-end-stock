@@ -71,15 +71,19 @@ export class CustomersService {
 
     if (filter.district_id) {
       andConditions.push({
-        district: { id: filter.district_id },
+        province: {
+          district: {
+            some: { id: filter.district_id },
+          },
+        },
       });
     }
 
     if (filter.province_id) {
       andConditions.push({
-        district: {
-          province: {
-            id: filter.province_id,
+        province: {
+          district: {
+            some: { id: filter.district_id },
           },
         },
       });
@@ -102,11 +106,7 @@ export class CustomersService {
         where,
         orderBy: { createdAt: 'desc' },
         include: {
-          district: {
-            include: {
-              province: true,
-            },
-          },
+          province: true,
         },
       }),
       this.prisma.customer.count({ where }),
@@ -147,7 +147,7 @@ export class CustomersService {
             where: { createdAt: { gte: startOfCurrentMonth } },
           }),
           this.prisma.customer.count({
-            where: { type: 'RETAIL', createdAt: { gte: startOfCurrentMonth } },
+            where: { type: 'RETAILS', createdAt: { gte: startOfCurrentMonth } },
           }),
           this.prisma.customer.count({
             where: {
@@ -156,7 +156,7 @@ export class CustomersService {
             },
           }),
           this.prisma.customer.count({
-            where: { type: 'BOTH', createdAt: { gte: startOfCurrentMonth } },
+            where: { type: 'VIP', createdAt: { gte: startOfCurrentMonth } },
           }),
         ]);
 
@@ -170,7 +170,7 @@ export class CustomersService {
           }),
           this.prisma.customer.count({
             where: {
-              type: 'RETAIL',
+              type: 'RETAILS',
               createdAt: { gte: startOfLastMonth, lte: endOfLastMonth },
             },
           }),
@@ -182,7 +182,7 @@ export class CustomersService {
           }),
           this.prisma.customer.count({
             where: {
-              type: 'BOTH',
+              type: 'VIP',
               createdAt: { gte: startOfLastMonth, lte: endOfLastMonth },
             },
           }),
@@ -192,13 +192,13 @@ export class CustomersService {
       const [total, retails, wholesale, both] = await this.prisma.$transaction([
         this.prisma.customer.count(),
         this.prisma.customer.count({
-          where: { type: 'RETAIL' },
+          where: { type: 'RETAILS' },
         }),
         this.prisma.customer.count({
           where: { type: 'WHOLESALE' },
         }),
         this.prisma.customer.count({
-          where: { type: 'BOTH' },
+          where: { type: 'VIP' },
         }),
       ]);
 
@@ -235,9 +235,9 @@ export class CustomersService {
       const customer = await this.prisma.customer.findUnique({
         where: { id },
         include: {
-          district: {
+          province: {
             include: {
-              province: true,
+              district: true,
             },
           },
         },
@@ -254,9 +254,10 @@ export class CustomersService {
       const customer = await this.prisma.customer.findUnique({
         where: { id },
         include: {
-          district: {
+          province: {
+            select: { name: true },
             include: {
-              province: { select: { name: true } },
+              district: true,
             },
           },
           createdBy: {

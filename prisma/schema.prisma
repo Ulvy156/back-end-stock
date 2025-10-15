@@ -26,9 +26,9 @@ enum WarehouseType {
   TEMPORARY
 }
 enum CustomerType {
-  RETAIL
+  RETAILS
   WHOLESALE
-  BOTH
+  VIP
 }
 // Users
 model User {
@@ -94,8 +94,6 @@ model Districts {
   name          String    
   province_id   Int
   province      Provinces @relation(fields: [province_id], references: [id], onDelete: Cascade)
-
-  customers     Customer[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -111,17 +109,14 @@ model Customer {
   phone         String?   @unique
   telegram      String?
   type          CustomerType @default(RETAILS)
-  provinceId    Int
-  province      Provinces @relation(fields: [provinceId], references: [id])
+  province_id    Int
+  province      Provinces @relation(fields: [province_id], references: [id])
   img_url       String?
   lastOrderDate DateTime?
   totalOrders   Int       @default(0)
   totalSpent    Float     @default(0)
   mapUrl        String?
   sales         Sale[]    // One-to-many
-
-  district_id   String
-  district      Districts @relation(fields: [district_id], references: [id], onDelete: Cascade)
 
   created_by_user_id  String?   
   createdBy           User?     @relation("CustomerCreatedBy", fields: [created_by_user_id], references: [id])
@@ -132,7 +127,7 @@ model Customer {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  @@index([phone, telegram, created_by_user_id, district_id])
+  @@index([phone, telegram, created_by_user_id])
   @@map("customer")
 }
 
