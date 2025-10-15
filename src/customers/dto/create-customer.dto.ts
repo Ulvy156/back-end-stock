@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsEnum,
   IsNotEmpty,
@@ -27,6 +28,7 @@ export class CreateCustomerDto {
 
   @IsNumber()
   @IsNotEmpty()
+  @Type(() => Number)
   province_id: number;
 
   @IsString()

@@ -16,7 +16,7 @@ export class CustomersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly fileUpload: FileuploadService,
-  ) {}
+  ) { }
 
   async create(createCustomerDto: CreateCustomerDto): Promise<apiResponseType> {
     try {
@@ -40,6 +40,8 @@ export class CustomersService {
       });
       return apiResponse(HttpStatusCode.CREATED, 'Customer Created', customer);
     } catch (error: unknown) {
+      console.log(error);
+
       return apiError(error);
     }
   }
@@ -106,7 +108,11 @@ export class CustomersService {
         where,
         orderBy: { createdAt: 'desc' },
         include: {
-          province: true,
+          province: {
+            include: {
+              district: true,
+            },
+          },
         },
       }),
       this.prisma.customer.count({ where }),

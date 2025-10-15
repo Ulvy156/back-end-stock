@@ -56,7 +56,7 @@ model User {
 }
 model Role {
   id            Int            @id @default(autoincrement())
-  name          String          @unique
+  name          RoleEnum        @default(SELLER)
   description   String?
   users         User[]
   permissions   RolePermission[]
@@ -116,6 +116,7 @@ model Customer {
   totalOrders   Int       @default(0)
   totalSpent    Float     @default(0)
   mapUrl        String?
+  address       String
   sales         Sale[]    // One-to-many
 
   created_by_user_id  String?   

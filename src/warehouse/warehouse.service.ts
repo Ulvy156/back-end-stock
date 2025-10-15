@@ -123,12 +123,21 @@ export class WarehouseService {
     warehouse_id: number,
   ): Promise<apiResponseType> {
     try {
-      const user = await this.prisma.user.findFirst({ where: { id: user_id } });
+      const user = await this.prisma.user.findFirst({
+        where: { id: user_id },
+        include: {
+          role: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
       if (!user) {
         throw new NotFoundException('User not found');
       }
       // if user is not warehouse manager
-      if (user.role !== RoleEnum.WAREHOUSE_MANAGER) {
+      if (user.role?.name !== RoleEnum.WAREHOUSE_MANAGER) {
         throw new BadRequestException(
           'Only user has role WAREHOUSE MANAGER can be assigned',
         );
@@ -148,7 +157,7 @@ export class WarehouseService {
         include: {
           users: {
             where: {
-              role: RoleEnum.WAREHOUSE_MANAGER,
+              warehouse_id: warehouse_id,
             },
           },
         },
@@ -184,12 +193,6 @@ export class WarehouseService {
       const user = await this.prisma.user.findFirst({ where: { id: user_id } });
       if (!user) {
         throw new NotFoundException('User not found');
-      }
-      // if user is not warehouse manager
-      if (user.role === RoleEnum.WAREHOUSE_MANAGER) {
-        throw new BadRequestException(
-          'User has role WAREHOUSE MANAGER can not be assigned',
-        );
       }
 
       // check if warehouse exist
