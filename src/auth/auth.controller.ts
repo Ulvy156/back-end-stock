@@ -6,7 +6,9 @@ import {
   Request,
   Headers,
   UnauthorizedException,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { Public } from './public.decorator';
 import type { User } from 'generated/prisma';
@@ -23,10 +25,24 @@ export class AuthController {
   async login(
     @Body('email') email: string,
     @Body('password') password: string,
+    @Res({ passthrough: true }) res: Response,
   ) {
     const user = await this.authService.validateUser(email, password);
     if (!user) throw new UnauthorizedException('Unauthorized');
-    return this.authService.login(user);
+
+    // generate tokens using service
+    const { accessToken, refreshToken } = this.authService.login(user);
+
+    // set refresh token in HttpOnly cookie
+    res.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: Number(process.env.JWT_REFRESH_EXPIRES_IN),
+    });
+
+    // return only access token
+    return { accessToken };
   }
 
   @Public()
