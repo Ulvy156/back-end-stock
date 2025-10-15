@@ -7,7 +7,6 @@ import { HttpStatusCode } from 'src/enum/http-status';
 import { apiError } from 'src/common/helpers/apiError';
 import { apiResponseType } from 'src/common/constant/response-type';
 import * as bcrypt from 'bcrypt';
-import { RoleEnum } from 'generated/prisma';
 import { FileuploadService } from 'src/fileupload/fileupload.service';
 import { FilePath, FileType } from 'src/enum/fileupload.enum';
 @Injectable()
@@ -19,16 +18,6 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto): Promise<apiResponseType> {
     try {
-      // optional for warehouse id for admin only
-      if (
-        createUserDto.role !== RoleEnum.ADMIN &&
-        !createUserDto.warehouse_id
-      ) {
-        throw new HttpException(
-          `warehouse id is required for ${createUserDto.role} role`,
-          HttpStatusCode.BAD_REQUEST,
-        );
-      }
       // if photo exist than upload
       if (createUserDto.file) {
         // check if file is valid
@@ -48,7 +37,7 @@ export class UserService {
       const user = await this.prisma.user.create({
         data: {
           ...createUserDto,
-          role: createUserDto.role ?? RoleEnum.SELLER,
+          roleId: createUserDto.roleId,
           password: hash, // use hashed password
         },
       });
