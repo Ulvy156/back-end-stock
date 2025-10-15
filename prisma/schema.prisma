@@ -38,7 +38,8 @@ model User {
   password      String
   img_url       String?
   phone         String?         @unique
-  role          RoleEnum        @default(SELLER)
+  roleId      Int?
+  role        Role?     @relation(fields: [roleId], references: [id])
   purchases     Purchase[]      // One-to-many
   sales         Sale[]          // One-to-many
   // reverse relations
@@ -50,8 +51,33 @@ model User {
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 
-  @@index([role, warehouse_id])
+  @@index([roleId, warehouse_id])
   @@map("user")
+}
+model Role {
+  id            Int            @id @default(autoincrement())
+  name          String          @unique
+  description   String?
+  users         User[]
+  permissions   RolePermission[]
+}
+
+model Permission {
+  id            Int            @id @default(autoincrement())
+  name          String
+  key           String          @unique
+  roles         RolePermission[]
+}
+
+model RolePermission {
+  id            Int             @id @default(autoincrement())
+  roleId        Int
+  permissionId  Int
+
+  role          Role            @relation(fields: [roleId], references: [id])
+  permission    Permission      @relation(fields: [permissionId], references: [id])
+
+  @@unique([roleId, permissionId])
 }
 
 model Provinces {
