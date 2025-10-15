@@ -37,7 +37,9 @@ model User {
   email         String          @unique
   password      String
   img_url       String?
-  role          RoleEnum        @default(SELLER)
+  phone         String?         @unique
+  roleId      Int?
+  role        Role?     @relation(fields: [roleId], references: [id])
   purchases     Purchase[]      // One-to-many
   sales         Sale[]          // One-to-many
   warehouse_id  Int?             
@@ -45,8 +47,60 @@ model User {
   audit_logs    AuditLog[]      // One-to-many
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
+
+  @@index([roleId, warehouse_id])
+  @@map("user")
+}
+model Role {
+  id            Int            @id @default(autoincrement())
+  name          String          @unique
+  description   String?
+  users         User[]
+  permissions   RolePermission[]
 }
 
+model Permission {
+  id            Int            @id @default(autoincrement())
+  name          String
+  key           String          @unique
+  roles         RolePermission[]
+}
+
+model RolePermission {
+  id            Int             @id @default(autoincrement())
+  roleId        Int
+  permissionId  Int
+
+  role          Role            @relation(fields: [roleId], references: [id])
+  permission    Permission      @relation(fields: [permissionId], references: [id])
+
+  @@unique([roleId, permissionId])
+}
+
+model Provinces {
+  id            Int       @id @default(autoincrement())
+  name          String    @unique
+  district      Districts[] // one-to-many
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("province")
+}
+model Districts {
+  id            String       @id @default(uuid())
+  name          String    
+  province_id   Int
+  province      Provinces @relation(fields: [province_id], references: [id], onDelete: Cascade)
+
+  customers     Customer[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([province_id])
+  @@unique([province_id, name]) // name unique per province
+  @@map("district")
+
+}
 // Customers
 model Customer {
   id            String    @id @default(uuid())
