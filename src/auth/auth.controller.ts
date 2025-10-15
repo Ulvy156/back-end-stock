@@ -29,9 +29,10 @@ export class AuthController {
     return this.authService.login(user);
   }
 
+  @Public()
   @Post('refresh-token')
-  async refreshTokens(@Headers('refresh_token') refreshToken: string) {
-    return this.authService.refreshTokens(refreshToken);
+  async refreshTokens(@Headers('refresh_token') refresh_token: string) {
+    return this.authService.refreshTokens(refresh_token);
   }
 
   // =======================

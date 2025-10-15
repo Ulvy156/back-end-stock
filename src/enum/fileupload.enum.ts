@@ -10,6 +10,7 @@ export enum FileType {
   PNG = 'image/png',
   JPEG = 'image/jpeg',
   JPG = 'image/jpg',
+  WEBP = 'image/webp',
 
   // Documents
   PDF = 'application/pdf',
@@ -18,3 +19,10 @@ export enum FileType {
   XLS = 'application/vnd.ms-excel',
   XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 }
+
+export const AllowImageType = [
+  FileType.PNG,
+  FileType.JPEG,
+  FileType.JPG,
+  FileType.WEBP,
+];

@@ -42,6 +42,9 @@ model User {
   role        Role?     @relation(fields: [roleId], references: [id])
   purchases     Purchase[]      // One-to-many
   sales         Sale[]          // One-to-many
+  // reverse relations
+  customersCreated   Customer[]   @relation("CustomerCreatedBy")
+  customersUpdated   Customer[]   @relation("CustomerUpdatedBy")
   warehouse_id  Int?             
   warehouse     Warehouse?       @relation(fields: [warehouse_id], references: [id])
   audit_logs    AuditLog[]      // One-to-many
@@ -106,17 +109,28 @@ model Customer {
   phone         String?   @unique
   telegram      String?
   type          CustomerType @default(RETAILS)
-  provinceId    Int
-  province      Provinces @relation(fields: [provinceId], references: [id])
+  province_id    Int
+  province      Provinces @relation(fields: [province_id], references: [id])
   img_url       String?
   lastOrderDate DateTime?
   totalOrders   Int       @default(0)
   totalSpent    Float     @default(0)
   mapUrl        String?
   sales         Sale[]    // One-to-many
+
+  created_by_user_id  String?   
+  createdBy           User?     @relation("CustomerCreatedBy", fields: [created_by_user_id], references: [id])
+
+  updated_by_user_id  String?   
+  updatedBy           User?     @relation("CustomerUpdatedBy", fields: [updated_by_user_id], references: [id])
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  @@index([phone, telegram, created_by_user_id])
+  @@map("customer")
 }
+
 
 // Warehouses
 model Warehouse {
@@ -133,8 +147,10 @@ model Warehouse {
   users         User[]            // Many-to-one with Users
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
-}
 
+  @@index([type])
+  @@map("warehouse")
+}
 
 // ProductWarehouse (stock per product per warehouse)
 model ProductWarehouse {
@@ -147,8 +163,9 @@ model ProductWarehouse {
   updatedAt     DateTime  @updatedAt
   @@id([product_id, warehouse_id]) // cannot have the same product in the same warehouse twice
   @@index([product_id, warehouse_id]) // For fast stock lookups
-}
 
+  @@map("product_warehouse")
+}
 // Categories
 model Category {
   id          String      @id @default(uuid())
@@ -157,6 +174,8 @@ model Category {
   products    Product[]   // One-to-many
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+
+  @@map("category")
 }
 
 // Products
@@ -167,13 +186,18 @@ model Product {
   unit          String
   cost_price    Decimal           @db.Decimal(10, 2)
   selling_price Decimal           @db.Decimal(10, 2)
-  category_id   String?
-  category      Category?         @relation(fields: [category_id], references: [id], onDelete: SetNull)
+  category_id   String
+  img_url       String?
+  category      Category          @relation(fields: [category_id], references: [id], onDelete: Cascade)
   purchase_items PurchaseItem[]    // One-to-many
   sale_items    SaleItem[]        // One-to-many
   product_stocks ProductWarehouse[] // One-to-many
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
+
+  @@index([category_id])
+  @@map("products")
+
 }
 
 // Purchases ( import table )
@@ -189,6 +213,9 @@ model Purchase {
   purchase_items PurchaseItem[] // One-to-many
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
+
+  @@index([user_id, warehouse_id])
+  @@map("purchase")
 }
 
 // PurchaseItems ( item import from country )
@@ -203,7 +230,9 @@ model PurchaseItem {
   subtotal      Decimal   @db.Decimal(10, 2)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  @@map("PurchaseItems") // actual table name in db
+
+  @@index([purchase_id, product_id])
+  @@map("purchase_item")
 }
 
 // Sales ( sale to customer )
@@ -220,6 +249,9 @@ model Sale {
   sale_items    SaleItem[]    // One-to-many
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+
+  @@index([customer_id, warehouse_id])
+  @@map("sale")
 }
 
 // SaleItems ( details sale items )
@@ -234,7 +266,9 @@ model SaleItem {
   subtotal     Decimal   @db.Decimal(10, 2)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
-  @@map("SaleItems")
+
+  @@index([sale_id, product_id])
+  @@map("sale_item")
 }
 
 // AuditLogs ( logs all activity in system except GET method )
@@ -247,4 +281,6 @@ model AuditLog {
   entity_id   Int?
   details     Json?
   timestamp   DateTime  @default(now())
+
+  @@map("audit_log")
 }

@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateWarehouseDto } from './dto/create-warehouse.dto';
 import { UpdateWarehouseDto } from './dto/update-warehouse.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -10,7 +14,7 @@ import { RoleEnum } from 'generated/prisma';
 
 @Injectable()
 export class WarehouseService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(
     createWarehouseDto: CreateWarehouseDto,
@@ -48,14 +52,19 @@ export class WarehouseService {
     return apiResponse(HttpStatusCode.OK, 'Success', meta);
   }
 
+  private async getWarehouseById(id: number) {
+    const warehouse = await this.prisma.warehouse.findUnique({
+      where: { id },
+    });
+    if (!warehouse) {
+      throw new NotFoundException('Category not found');
+    }
+    return warehouse;
+  }
+
   async findOne(id: number) {
     try {
-      const warehouse = await this.prisma.warehouse.findFirst({
-        where: { id },
-      });
-      if (!warehouse) {
-        return apiResponse(HttpStatusCode.NOT_FOUND, 'Warehouse not found');
-      }
+      const warehouse = await this.getWarehouseById(id);
       return apiResponse(HttpStatusCode.CREATED, 'Warehouse', warehouse);
     } catch (error) {
       return apiError(error);
@@ -71,7 +80,7 @@ export class WarehouseService {
         },
       });
       if (!warehouse) {
-        return apiResponse(HttpStatusCode.NOT_FOUND, 'Warehouse not found');
+        throw new NotFoundException('Warehouse not found');
       }
       return apiResponse(HttpStatusCode.CREATED, 'Warehouse', warehouse);
     } catch (error) {
@@ -81,23 +90,13 @@ export class WarehouseService {
 
   async update(id: number, updateWarehouseDto: UpdateWarehouseDto) {
     try {
-      const currentWarehouse = await this.prisma.warehouse.findFirst({
-        where: { id },
-      });
+      await this.getWarehouseById(id);
 
-      if (!currentWarehouse) {
-        return apiResponse(404, 'Warehouse not found', null);
-      }
-
-      const updatedWarehouse = await this.prisma.warehouse.update({
+      await this.prisma.warehouse.update({
         where: { id },
         data: updateWarehouseDto,
       });
-      return apiResponse(
-        HttpStatusCode.OK,
-        'Updated warehouse success',
-        updatedWarehouse,
-      );
+      return apiResponse(HttpStatusCode.OK, 'Updated warehouse success');
     } catch (error) {
       return apiError(error);
     }
@@ -105,14 +104,7 @@ export class WarehouseService {
 
   async remove(id: number) {
     try {
-      const currentWarehouse = await this.prisma.warehouse.findFirst({
-        where: { id },
-      });
-
-      if (!currentWarehouse) {
-        return apiResponse(404, 'Warehouse not found', null);
-      }
-
+      await this.getWarehouseById(id);
       const deletedWarehouse = this.prisma.warehouse.delete({
         where: { id },
       });
@@ -133,12 +125,11 @@ export class WarehouseService {
     try {
       const user = await this.prisma.user.findFirst({ where: { id: user_id } });
       if (!user) {
-        return apiResponse(HttpStatusCode.NOT_FOUND, 'User not found');
+        throw new NotFoundException('User not found');
       }
       // if user is not warehouse manager
       if (user.role !== RoleEnum.WAREHOUSE_MANAGER) {
-        return apiResponse(
-          HttpStatusCode.BAD_REQUEST,
+        throw new BadRequestException(
           'Only user has role WAREHOUSE MANAGER can be assigned',
         );
       }
@@ -148,7 +139,7 @@ export class WarehouseService {
         where: { id: warehouse_id },
       });
       if (!warehouse) {
-        return apiResponse(HttpStatusCode.NOT_FOUND, 'Warehouse not found');
+        throw new NotFoundException('Warehouse not found');
       }
 
       // check if already has manager
@@ -163,11 +154,7 @@ export class WarehouseService {
         },
       });
       if (hasManager && hasManager.users.length > 0) {
-        return apiResponse(
-          HttpStatusCode.NOT_FOUND,
-          'Warehouse already has manager',
-          hasManager,
-        );
+        throw new BadRequestException('Warehouse already has manager');
       }
 
       //create warehouse
@@ -196,12 +183,11 @@ export class WarehouseService {
     try {
       const user = await this.prisma.user.findFirst({ where: { id: user_id } });
       if (!user) {
-        return apiResponse(HttpStatusCode.NOT_FOUND, 'User not found');
+        throw new NotFoundException('User not found');
       }
       // if user is not warehouse manager
       if (user.role === RoleEnum.WAREHOUSE_MANAGER) {
-        return apiResponse(
-          HttpStatusCode.BAD_REQUEST,
+        throw new BadRequestException(
           'User has role WAREHOUSE MANAGER can not be assigned',
         );
       }
@@ -211,7 +197,7 @@ export class WarehouseService {
         where: { id: warehouse_id },
       });
       if (!warehouse) {
-        return apiResponse(HttpStatusCode.NOT_FOUND, 'Warehouse not found');
+        throw new NotFoundException('Warehouse not found');
       }
 
       //create warehouse
