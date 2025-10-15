@@ -81,9 +81,9 @@ model Provinces {
   id            Int       @id @default(autoincrement())
   name          String    @unique
   district      Districts[] // one-to-many
+  customer      Customer[] // one-to-many
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  customers     Customer[]
   @@map("province")
 }
 model Districts {
@@ -105,6 +105,7 @@ model Customer {
   name          String
   phone         String?   @unique
   telegram      String?
+  type          CustomerType @default(RETAILS)
   provinceId    Int
   province      Provinces @relation(fields: [provinceId], references: [id])
   img_url       String?
