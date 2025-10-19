@@ -33,6 +33,10 @@ export class CreateCustomerDto {
 
   @IsString()
   @IsNotEmpty()
+  district_id: string;
+
+  @IsString()
+  @IsNotEmpty()
   address: string;
 
   @IsUrl()

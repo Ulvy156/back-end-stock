@@ -94,6 +94,7 @@ model Districts {
   name          String    
   province_id   Int
   province      Provinces @relation(fields: [province_id], references: [id], onDelete: Cascade)
+  customer    Customer[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -110,7 +111,9 @@ model Customer {
   telegram      String?
   type          CustomerType @default(RETAILS)
   province_id    Int
+  district_id    String
   province      Provinces @relation(fields: [province_id], references: [id])
+  district      Districts  @relation(fields: [district_id], references: [id])
   img_url       String?
   lastOrderDate DateTime?
   totalOrders   Int       @default(0)
