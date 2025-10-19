@@ -2,18 +2,19 @@ import {
   Controller,
   Post,
   Body,
-  Get,
-  Request,
-  Headers,
   UnauthorizedException,
+  Res,
+  Req,
+  Get,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { Public } from './public.decorator';
-import type { User } from 'generated/prisma';
+import type { Request } from 'express';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
   // =======================
   // Public: login user
@@ -23,24 +24,56 @@ export class AuthController {
   async login(
     @Body('email') email: string,
     @Body('password') password: string,
+    @Res({ passthrough: true }) res: Response,
   ) {
     const user = await this.authService.validateUser(email, password);
     if (!user) throw new UnauthorizedException('Unauthorized');
-    return this.authService.login(user);
+
+    // generate tokens using service
+    const { accessToken, refreshToken } = this.authService.login(user);
+
+    // set refresh token in HttpOnly cookie
+    res.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+      secure: false, // ❌ no HTTPS on local
+      sameSite: 'lax', // ✅ allow cross-site from localhost:5173 → localhost:3000
+      path: '/', // ✅ make cookie available globally
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    // return only access token
+    return { accessToken };
   }
 
   @Public()
   @Post('refresh-token')
-  async refreshTokens(@Headers('refresh_token') refresh_token: string) {
-    return this.authService.refreshTokens(refresh_token);
+  async refreshTokens(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const refreshToken: string = req.cookies?.refresh_token;
+
+    if (!refreshToken) {
+      throw new UnauthorizedException('Missing refresh token');
+    }
+
+    const tokens = await this.authService.refreshTokens(refreshToken);
+
+    // optional: reset the cookie if you’re rotating refresh tokens
+    res.cookie('refresh_token', tokens.refreshToken, {
+      httpOnly: true,
+      secure: false, // ❌ no HTTPS on local
+      sameSite: 'lax', // ✅ allow cross-site from localhost:5173 → localhost:3000
+      path: '/', // ✅ make cookie available globally
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    return { accessToken: tokens.accessToken };
   }
 
-  // =======================
-  // Protected: get profile
-  // =======================
   @Get('profile')
-  getProfile(@Request() req): User {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    return req.user as User;
+  getProfile(@Req() req: Request) {
+    // req.user is set by the JwtStrategy
+    return req.user;
   }
 }
