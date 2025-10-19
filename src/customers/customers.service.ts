@@ -108,11 +108,8 @@ export class CustomersService {
         where,
         orderBy: { createdAt: 'desc' },
         include: {
-          province: {
-            include: {
-              district: true,
-            },
-          },
+          province: true,
+          district: true,
         },
       }),
       this.prisma.customer.count({ where }),
@@ -136,7 +133,7 @@ export class CustomersService {
   // get type of customer ( retail...)
   async getCustomerSummary() {
     try {
-      // 📅 date ranges
+      // date ranges
       const startOfCurrentMonth = new Date();
       startOfCurrentMonth.setDate(1);
 
@@ -241,11 +238,8 @@ export class CustomersService {
       const customer = await this.prisma.customer.findUnique({
         where: { id },
         include: {
-          province: {
-            include: {
-              district: true,
-            },
-          },
+          province: true,
+          district: true,
         },
       });
       return apiResponse(HttpStatusCode.OK, 'Success', customer);
