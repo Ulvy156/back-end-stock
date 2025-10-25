@@ -35,9 +35,9 @@ export class AuthController {
     // set refresh token in HttpOnly cookie
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
-      secure: false, // ❌ no HTTPS on local
-      sameSite: 'lax', // ✅ allow cross-site from localhost:5173 → localhost:3000
-      path: '/', // ✅ make cookie available globally
+      secure: false, // no HTTPS on local
+      sameSite: 'lax', // allow cross-site from localhost:5173 → localhost:3000
+      path: '/', //  make cookie available globally
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -62,9 +62,9 @@ export class AuthController {
     // optional: reset the cookie if you’re rotating refresh tokens
     res.cookie('refresh_token', tokens.refreshToken, {
       httpOnly: true,
-      secure: false, // ❌ no HTTPS on local
-      sameSite: 'lax', // ✅ allow cross-site from localhost:5173 → localhost:3000
-      path: '/', // ✅ make cookie available globally
+      secure: false, // no HTTPS on local
+      sameSite: 'lax', //vallow cross-site from localhost:5173 → localhost:3000
+      path: '/', // make cookie available globally
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
