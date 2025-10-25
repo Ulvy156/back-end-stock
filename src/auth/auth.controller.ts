@@ -14,7 +14,7 @@ import type { Request } from 'express';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) { }
+  constructor(private authService: AuthService) {}
 
   // =======================
   // Public: login user
@@ -42,7 +42,7 @@ export class AuthController {
     });
 
     // return only access token
-    return { accessToken };
+    return { accessToken, user_id: user.id };
   }
 
   @Public()

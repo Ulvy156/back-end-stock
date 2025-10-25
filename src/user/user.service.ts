@@ -14,7 +14,7 @@ export class UserService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly fileUpload: FileuploadService,
-  ) {}
+  ) { }
 
   async create(createUserDto: CreateUserDto): Promise<apiResponseType> {
     try {
@@ -64,7 +64,12 @@ export class UserService {
 
   async findOne(id: string): Promise<apiResponseType> {
     try {
-      const user = await this.getUserById(id);
+      const user = await this.prisma.user.findFirstOrThrow({
+        where: { id },
+        include: {
+          role: true,
+        },
+      });
       return apiResponse(HttpStatusCode.OK, 'Success', user);
     } catch (error) {
       return apiError(error);
