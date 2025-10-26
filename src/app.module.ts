@@ -12,7 +12,7 @@ import { ProvinceModule } from './location/province/province.module';
 import { DistrictModule } from './location/district/district.module';
 import { ProductModule } from './Productions/product/product.module';
 import { CategoryModule } from './Productions/category/category.module';
-import { RolePermissionsModule } from './role-permissions/role-permissions.module';
+import { SystemPermissionModule } from './system-permission/system-permission.module';
 
 @Module({
   imports: [
@@ -27,7 +27,7 @@ import { RolePermissionsModule } from './role-permissions/role-permissions.modul
     DistrictModule,
     ProductModule,
     CategoryModule,
-    RolePermissionsModule,
+    SystemPermissionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
