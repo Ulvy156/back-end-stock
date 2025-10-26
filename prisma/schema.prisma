@@ -58,15 +58,19 @@ model Role {
   id            Int            @id @default(autoincrement())
   name          RoleEnum        @default(SELLER)
   description   String?
+  is_deleted    Boolean         @default(false)
+  deleted_at    DateTime?
   users         User[]
   permissions   RolePermission[]
 }
 
 model Permission {
   id            Int            @id @default(autoincrement())
-  name          String
-  key           String          @unique
+  name          String          @unique
   roles         RolePermission[]
+  is_deleted    Boolean         @default(false)
+  deleted_at    DateTime?
+  @@index([name])
 }
 
 model RolePermission {
