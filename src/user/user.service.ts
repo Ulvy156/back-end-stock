@@ -14,7 +14,7 @@ export class UserService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly fileUpload: FileuploadService,
-  ) { }
+  ) {}
 
   async create(createUserDto: CreateUserDto): Promise<apiResponseType> {
     try {
@@ -64,13 +64,32 @@ export class UserService {
 
   async findOne(id: string): Promise<apiResponseType> {
     try {
+      // get user included role + permission + role-permission
       const user = await this.prisma.user.findFirstOrThrow({
         where: { id },
         include: {
-          role: true,
+          // role table
+          role: {
+            include: {
+              // permission table
+              permissions: {
+                include: {
+                  // role-permission table
+                  permission: true,
+                },
+              },
+            },
+          },
         },
       });
-      return apiResponse(HttpStatusCode.OK, 'Success', user);
+      const result = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role?.name,
+        permissions: user.role?.permissions.map((p) => p.permission.name) || [],
+      };
+      return apiResponse(HttpStatusCode.OK, 'Success', result);
     } catch (error) {
       return apiError(error);
     }
