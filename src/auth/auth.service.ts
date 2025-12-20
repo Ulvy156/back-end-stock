@@ -27,12 +27,12 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_SECRET,
-      expiresIn: process.env.JWT_EXPIRES_IN,
+      expiresIn: Number(process.env.JWT_EXPIRES_IN),
     });
 
     const refreshToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_REFRESH_SECRET,
-      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
+      expiresIn: Number(process.env.JWT_REFRESH_EXPIRES_IN),
     });
 
     return { accessToken, refreshToken };
@@ -48,7 +48,7 @@ export class AuthService {
         { sub: payload.sub, role: payload.role },
         {
           secret: process.env.JWT_SECRET,
-          expiresIn: process.env.JWT_EXPIRES_IN,
+          expiresIn: Number(process.env.JWT_EXPIRES_IN),
         },
       );
 
@@ -56,7 +56,7 @@ export class AuthService {
         { sub: payload.sub, role: payload.role },
         {
           secret: process.env.JWT_REFRESH_SECRET,
-          expiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
+          expiresIn: Number(process.env.JWT_REFRESH_EXPIRES_IN),
         },
       );
 
